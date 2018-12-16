@@ -34,6 +34,7 @@ describe('AlbumService', () => {
 			it('should return an album image', async () => {
 				const albums = await albumService.albumStore.all();
 				const album = albums[0];
+				should().exist(album, 'Wrong Test Setup');
 				const folder = await albumService.getAlbumFolder(album);
 				should().exist(folder);
 				if (folder) {
