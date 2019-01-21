@@ -16,7 +16,6 @@ declare namespace AcousticbrainzClientApi {
 		host?: string;
 		port?: number;
 		basePath?: string;
-		limit?: number;
 		userAgent: string;
 		retryOn?: boolean;
 		retryDelay?: number;
@@ -31,7 +30,6 @@ export class AcousticbrainzClient extends WebserviceClient {
 		port: 80,
 		basePath: '/api/v1/',
 		userAgent: '',
-		limit: 25,
 		retryOn: false,
 		retryDelay: 3000,
 		retryCount: 3
