@@ -1,5 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {AlbumsComponent, ArtistOverviewComponent, TracksLoaderComponent} from '@library/components';
+import {ArtistOverviewComponent, ObjGroupsViewComponent, TracksLoaderComponent} from '@library/components';
 import {TEST_LIBRARY_IMPORTS, TEST_LIBRARY_PROVIDERS} from '@library/library.module.mock';
 import {MockComponent} from 'ng-mocks';
 
@@ -13,7 +13,7 @@ describe('ArtistOverviewComponent', () => {
 			providers: [...TEST_LIBRARY_PROVIDERS],
 			declarations: [
 				ArtistOverviewComponent,
-				MockComponent(AlbumsComponent),
+				MockComponent(ObjGroupsViewComponent),
 				MockComponent(TracksLoaderComponent)
 			]
 		}).compileComponents()
