@@ -1,0 +1,39 @@
+@import "globals.scss";
+
+:host {
+
+	.users {
+		padding: $padding;
+		font-size: 0.9em;
+	}
+
+	.heading {
+		font-size: 0.9em;
+	}
+
+	.user {
+		display: grid;
+		grid-template-columns: 60px 1fr 1fr 80px 80px 80px 80px 100px;
+		grid-gap: $padding;
+		padding: $padding-sm 0;
+		border-bottom: 1px solid var(--control-border);
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+
+		&.selected {
+			background-color: var(--background-active);
+		}
+	}
+
+	.icon-checkmark {
+		color: var(--primary);
+	}
+
+	.actions {
+		a {
+			margin-right: $margin-xs;
+		}
+	}
+}

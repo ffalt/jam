@@ -1,13 +1,30 @@
 @import "globals.scss";
 
 :host {
-	@include cdk-table();
 
-	.duration, .number, .format {
-		max-width: 100px;
+	.tracks {
+		padding: $padding;
+		font-size: 0.9em;
 	}
 
-	.more {
-		max-width: 80px;
+	.heading {
+		font-size: 0.9em;
 	}
+
+	.track {
+		display: grid;
+		grid-template-columns: 60px 2fr 1fr 1fr 50px 60px 60px 50px;
+		grid-gap: $padding;
+		padding: $padding-sm 0;
+		border-bottom: 1px solid var(--control-border);
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+
+		&.selected {
+			background-color: var(--background-active);
+		}
+	}
+
 }

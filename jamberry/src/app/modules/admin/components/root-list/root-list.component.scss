@@ -1,0 +1,44 @@
+@import "globals.scss";
+
+:host {
+
+	.roots {
+		padding: $padding;
+		font-size: 0.9em;
+	}
+
+	.heading {
+		font-size: 0.9em;
+	}
+
+	.root {
+		display: grid;
+		grid-template-columns: 1fr 2fr 130px 1fr 80px;
+		grid-gap: $padding;
+		padding: $padding-sm 0;
+		border-bottom: 1px solid var(--control-border);
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+
+		&.selected {
+			background-color: var(--background-active);
+		}
+	}
+
+	//
+	//.name {
+	//	max-width: 200px;
+	//}
+	//
+	.error {
+		color: var(--accent);
+	}
+
+	.actions {
+		a {
+			margin-right: $margin-xs;
+		}
+	}
+}
