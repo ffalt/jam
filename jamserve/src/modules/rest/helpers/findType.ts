@@ -1,5 +1,5 @@
 import {NoExplicitTypeError} from 'type-graphql';
-import {bannedTypes, ReturnTypeFunc, TypeOptions, TypeValue, TypeValueThunk} from '../decorators/types';
+import {bannedTypes, ReturnTypeFunc, TypeOptions, TypeValue, TypeValueThunk} from '../definitions/types';
 
 export type MetadataKey = 'design:type' | 'design:returntype' | 'design:paramtypes';
 
