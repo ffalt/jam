@@ -1,5 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {UserAvatarComponent, UserStatsComponent} from '@app/modules/user/components';
 import {TEST_USER_MODULE_IMPORTS, TEST_USER_MODULE_PROVIDERS} from '@app/modules/user/user.module.mock';
+import {MockComponent} from 'ng-mocks';
 import {UserPageComponent} from './user-page.component';
 
 describe('UserPageComponent', () => {
@@ -10,7 +12,11 @@ describe('UserPageComponent', () => {
 		TestBed.configureTestingModule({
 			imports: [...TEST_USER_MODULE_IMPORTS],
 			providers: [...TEST_USER_MODULE_PROVIDERS],
-			declarations: [UserPageComponent]
+			declarations: [
+				UserPageComponent,
+				MockComponent(UserAvatarComponent),
+				MockComponent(UserStatsComponent)
+			]
 		}).compileComponents()
 	);
 
