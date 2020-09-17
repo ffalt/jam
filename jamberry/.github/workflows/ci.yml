@@ -1,4 +1,4 @@
-name: test
+name: ci
 
 on:
   pull_request:
@@ -6,12 +6,16 @@ on:
 
 jobs:
   build:
+    name: CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/setup-node@v1
         with:
-          node-version: '14.x'
-      - run: npm ci
+          node-version: 14.x
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-ci-${{ hashFiles('**/package-lock.json') }}
+      - run: npm install
       - run: npm run test
