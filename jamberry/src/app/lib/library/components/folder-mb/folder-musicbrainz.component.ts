@@ -1,22 +1,23 @@
 import { Component, inject, type OnDestroy, type OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NotifyService } from '@core/services/notify/notify.service';
-import { type Jam, JamService } from '@jam';
+import { FolderType, type Jam, JamService } from '@jam';
 import { Subject, takeUntil } from 'rxjs';
 import { MbArtistComponent } from '../mb-artist/mb-artist.component';
 import { BackgroundTextComponent } from '@core/components/background-text/background-text.component';
 import { LoadingComponent } from '@core/components/loading/loading.component';
+import { MbAlbumComponent } from '../mb-album/mb-album.component';
 
 @Component({
 	selector: 'app-folder-musicbrainz',
 	templateUrl: './folder-musicbrainz.component.html',
 	styleUrls: ['./folder-musicbrainz.component.scss'],
-	imports: [MbArtistComponent, BackgroundTextComponent, LoadingComponent]
+	imports: [MbArtistComponent, BackgroundTextComponent, LoadingComponent, MbAlbumComponent]
 })
 export class FolderMusicbrainzComponent implements OnInit, OnDestroy {
 	folder?: Jam.Folder;
 	id?: string;
-	hasArtistID: boolean = false;
+	protected readonly FolderType = FolderType;
 	private readonly jam = inject(JamService);
 	private readonly notify = inject(NotifyService);
 	private readonly route = inject(ActivatedRoute);
@@ -40,7 +41,6 @@ export class FolderMusicbrainzComponent implements OnInit, OnDestroy {
 
 	refresh(): void {
 		this.folder = undefined;
-		this.hasArtistID = false;
 		if (this.id) {
 			this.jam.folder.id({ id: this.id, folderIncTag: true })
 				.then(folder => {
@@ -54,6 +54,5 @@ export class FolderMusicbrainzComponent implements OnInit, OnDestroy {
 
 	display(folder?: Jam.Folder): void {
 		this.folder = folder;
-		this.hasArtistID = !!folder?.tag?.mbArtistID;
 	}
 }

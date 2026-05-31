@@ -1,9 +1,17 @@
-@if (folder) {
-	@if (hasArtistID) {
+@if (!folder) {
+	<app-loading/>
+} @else if (folder.type === FolderType.artist) {
+	@if (folder.tag?.mbArtistID) {
 		<app-mb-artist [mbArtistID]="folder.tag?.mbArtistID" />
 	} @else {
-		<app-background-text text="No Musicbrainz ArtistID available" i18n-text />
+		<app-background-text text="No artist name available" i18n-text/>
+	}
+} @else if ([FolderType.album, FolderType.multialbum].includes(folder.type)) {
+	@if (folder.tag?.mbReleaseID) {
+		<app-mb-album [mbAlbumID]="folder.tag?.mbReleaseID"/>
+	} @else {
+		<app-background-text text="No album info available" i18n-text/>
 	}
 } @else {
-	<app-loading />
+	<app-background-text text="No info available" i18n-text/>
 }
