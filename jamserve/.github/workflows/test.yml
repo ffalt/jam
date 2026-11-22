@@ -1,0 +1,59 @@
+name: test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - "**"
+    paths-ignore:
+      - README.md
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      image: ffalt/jam-test:26.04
+      options: --user 1001
+    env:
+      JAM_DB_HOST: postgres
+      NODE_ENV: development
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.x
+          package-manager-cache: false
+      - run: npm ci
+      - name: Try to build
+        run: npm run build
+      - name: Test with coverage
+        run: npm run coverage
+        env:
+          API_SPEC_TEST: false
+      - uses: qltysh/qlty-action/coverage@v2.5.0
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage/lcov.info
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: jamtest
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5

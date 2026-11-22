@@ -1,0 +1,120 @@
+import { slugify } from './slug.js';
+
+export interface MetaStatValue<T> {
+	count: number;
+	val: T;
+}
+
+export type MetaStatString = MetaStatValue<string>;
+
+export type MetaStatNumber = MetaStatValue<number>;
+
+export class MetaStatBuilder {
+	stats: Record<string, Record<string, { count: number; val: string | number }>> = {};
+
+	private static convert2Numlist(o: Record<string, { count: number; val: string | number }>): Array<MetaStatNumber> {
+		return Object.values(o)
+			.map(value => ({ count: value.count, val: Number(value.val) }))
+			.sort((a, b) => a.count - b.count);
+	}
+
+	private static convert2list(o: Record<string, { count: number; val: string | number }>): Array<MetaStatString | MetaStatNumber> {
+		return Object.values(o)
+			.map(value => value)
+			.sort((a, b) => a.count - b.count) as Array<MetaStatString | MetaStatNumber>;
+	}
+
+	private static getMostUsedTagValue<T>(list: Array<MetaStatValue<T>>, multi?: T): T | undefined {
+		list = list.sort((a, b) => b.count - a.count);
+		const item0 = list.at(0);
+		if (!item0) {
+			return;
+		}
+		const item1 = list.at(1);
+		if (!item1 || (item0.count - item1.count > 4)) {
+			return item0.val;
+		}
+		if (multi !== undefined && list.length > 3) {
+			return multi;
+		}
+		const cleaned = list.filter(o => o.count > 1);
+		if (multi !== undefined && cleaned.length > 1) {
+			return multi;
+		}
+		const cleaned0 = cleaned.at(0);
+		if (cleaned0) {
+			return cleaned0.val;
+		}
+		if (multi !== undefined) {
+			return multi;
+		}
+		return item0.val;
+	}
+
+	statID(name: string, value?: string): void {
+		if (!(value && value.trim().length > 0)) {
+			return;
+		}
+
+		let slug = value.split(' ', 1).at(0) ?? value;
+		slug = slug.trim();
+		this.stats[name] ??= {};
+		const stat = this.stats[name];
+		stat[slug] ??= { count: 0, val: slug };
+		stat[slug].count += 1;
+	}
+
+	statNumber(name: string, value?: number | null): void {
+		if (value === undefined || value === null) {
+			return;
+		}
+
+		const slug = value.toString();
+		this.stats[name] ??= {};
+		const stat = this.stats[name];
+		stat[slug] ??= { count: 0, val: value };
+		stat[slug].count += 1;
+	}
+
+	statSlugValue(name: string, value?: string): void {
+		if (!(value && value.trim().length > 0)) {
+			return;
+		}
+
+		const slug = slugify(value);
+		this.stats[name] ??= {};
+		const stat = this.stats[name];
+		stat[slug] ??= { count: 0, val: value.trim() };
+		stat[slug].count += 1;
+	}
+
+	asList(name: string): Array<MetaStatString | MetaStatNumber> {
+		return MetaStatBuilder.convert2list(this.stats[name] ?? {});
+	}
+
+	asStringList(name: string): Array<string> {
+		return MetaStatBuilder.convert2list(this.stats[name] ?? {})
+			.sort((a, b) => a.count - b.count)
+			.map(entry => entry.val.toString());
+	}
+
+	asNumberList(name: string): Array<MetaStatNumber> {
+		return MetaStatBuilder.convert2Numlist(this.stats[name] ?? {});
+	}
+
+	mostUsed(name: string, multi?: string): undefined | string {
+		const list = this.asList(name) as Array<MetaStatString>;
+		return MetaStatBuilder.getMostUsedTagValue<string>(list, multi);
+	}
+
+	mostUsedOrNone(name: string): undefined | string {
+		// values are never collected empty, so an empty result is the "they disagree" marker
+		const value = this.mostUsed(name, '');
+		return value === '' ? undefined : value;
+	}
+
+	mostUsedNumber(name: string): undefined | number {
+		const list = this.asNumberList(name);
+		return MetaStatBuilder.getMostUsedTagValue<number>(list);
+	}
+}

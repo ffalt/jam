@@ -1,0 +1,37 @@
+import express from 'express';
+import { injectable, inject } from 'inversify';
+import { logger } from '../../../utils/logger.js';
+import { ConfigService } from '../../engine/services/config.service.js';
+import { ApolloMiddleware } from './apollo.middleware.js';
+import path from 'node:path';
+import RateLimit from 'express-rate-limit';
+
+const log = logger('Graphql');
+
+@injectable()
+export class GraphqlMiddleware {
+	@inject(ConfigService)
+	readonly configService!: ConfigService;
+
+	@inject(ApolloMiddleware)
+	readonly apollo!: ApolloMiddleware;
+
+	async playground(): Promise<express.Router> {
+		const api = express.Router();
+		api.get('{*splat}', express.static(path.resolve('./static/graphql/')));
+		return api;
+	}
+
+	async middleware(configService: ConfigService): Promise<express.Router> {
+		const graphql = express.Router();
+
+		graphql.use(RateLimit(configService.rateLimits.graphql));
+
+		log.debug('registering graphql playground');
+		graphql.use('/playground', await this.playground());
+
+		log.debug('registering graphql api middleware');
+		graphql.use('/', await this.apollo.middleware());
+		return graphql;
+	}
+}

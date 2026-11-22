@@ -1,0 +1,91 @@
+import path from 'node:path';
+import { AudioModule } from '../../modules/audio/audio.module.js';
+import { ImageModule } from '../../modules/image/image.module.js';
+import { Track, TrackHealth } from './track.js';
+import { logger } from '../../utils/logger.js';
+import { trackTagToRawTag } from '../../modules/audio/metadata.js';
+import { processQueue } from '../../utils/queue.js';
+import { TrackRulesChecker } from '../health/track.rule.js';
+import { injectable, inject, postConstruct } from 'inversify';
+import { FolderService } from '../folder/folder.service.js';
+import { TrackHealthHint } from '../health/health.model.js';
+import { Orm } from '../../modules/engine/services/orm.service.js';
+import { basenameStripExtension } from '../../utils/fs-utils.js';
+import { ApiBinaryResult } from '../../modules/deco/express/express-responder.js';
+import { MediaTagRaw } from '../tag/tag.model.js';
+
+const log = logger('TrackService');
+
+@injectable()
+export class TrackService {
+	checker!: TrackRulesChecker;
+	@inject(AudioModule)
+	private readonly audioModule!: AudioModule;
+
+	@inject(ImageModule)
+	private readonly imageModule!: ImageModule;
+
+	@inject(FolderService)
+	private readonly folderService!: FolderService;
+
+	@postConstruct()
+	postConstruct(): void {
+		this.checker = new TrackRulesChecker(this.audioModule);
+	}
+
+	async getRawTag(track: Track): Promise<MediaTagRaw | undefined> {
+		try {
+			const result = await this.audioModule.readRawTag(path.join(track.path, track.fileName));
+			if (!result) {
+				const tag = await track.tag.get();
+				if (tag) {
+					return trackTagToRawTag(tag);
+				}
+			}
+			return result;
+		} catch {
+			const tag = await track.tag.get();
+			return tag ? trackTagToRawTag(tag) : undefined;
+		}
+	}
+
+	async getImage(orm: Orm, track: Track, size?: number, format?: string): Promise<ApiBinaryResult | undefined> {
+		const tag = await track.tag.get();
+		if (tag?.nrTagImages) {
+			const result = await this.imageModule.getExisting(track.id, size, format);
+			if (result) {
+				return result;
+			}
+			try {
+				const buffer = await this.audioModule.extractTagImage(path.join(track.path, track.fileName));
+				if (buffer) {
+					return await this.imageModule.getBuffer(track.id, buffer, size, format);
+				}
+			} catch (error) {
+				log.error('TrackService', `Extracting image from audio failed: ${path.join(track.path, track.fileName)}: ${error}`);
+			}
+		}
+		const folder = await track.folder.get();
+		if (folder) {
+			const name = basenameStripExtension(track.fileName);
+			const artworks = await folder.artworks.getItems();
+			const artwork = artworks.find(a => a.name.startsWith(name));
+			if (artwork) {
+				return this.imageModule.get(artwork.id, path.join(artwork.path, artwork.name), size, format);
+			}
+			return this.folderService.getImage(orm, folder, size, format);
+		}
+		return;
+	}
+
+	async health(tracks: Array<Track>, media?: boolean): Promise<Array<TrackHealth>> {
+		const result: Array<{ track: Track; health: Array<TrackHealthHint> }> = [];
+		await processQueue<Track>(3, tracks, async track => {
+			const health = await this.checker.run(track, !!media);
+			if (health.length > 0) {
+				result.push({ track, health });
+			}
+		});
+		return result;
+	}
+}

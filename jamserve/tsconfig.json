@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "outDir": "./dist",
+    "rootDir": "src",
+    "strict": true,
+    "removeComments": true,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types",
+      "src/@types",
+      "src/types"
+    ],
+    "paths": {
+      "common-password-checker": [
+        "./src/@types/common-password-checker"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/modules/audio/formats/tasks/task-analyze-mp3.ts",
+    "./src/modules/audio/formats/tasks/task-fix-mp3.ts",
+    "./src/modules/audio/formats/tasks/task-rewrite-mp3.ts",
+    "./src/modules/audio/formats/tasks/task-remove-id3v1.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "bin",
+    "deploy",
+    "data",
+    "dist",
+    "temp",
+    "local",
+    "static",
+    ".git",
+    ".idea"
+  ]
+}

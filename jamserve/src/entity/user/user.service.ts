@@ -1,0 +1,264 @@
+import { User } from './user.js';
+import { Orm } from '../../modules/engine/services/orm.service.js';
+import { bcryptComparePassword, bcryptPassword } from '../../utils/bcrypt.js';
+import { SessionMode, UserRole } from '../../types/enums.js';
+import { JWTPayload } from '../../utils/jwt.js';
+import { injectable, inject, postConstruct } from 'inversify';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import fse from 'fs-extra';
+import { ConfigService } from '../../modules/engine/services/config.service.js';
+import { fileDeleteIfExists } from '../../utils/fs-utils.js';
+import { ImageModule } from '../../modules/image/image.module.js';
+import commonPassword from 'common-password-checker';
+import { UserMutateParameters } from './user.parameters.js';
+import { randomString } from '../../utils/random.js';
+import { invalidParameterError, unauthError } from '../../modules/deco/express/express-error.js';
+import { ApiBinaryResult } from '../../modules/deco/express/express-responder.js';
+import { hashMD5 } from '../../utils/md5.js';
+import { SubsonicApiError, SubsonicFormatter } from '../../modules/subsonic/formatter.js';
+
+@injectable()
+export class UserService {
+	@inject(ConfigService)
+	private readonly configService!: ConfigService;
+
+	@inject(ImageModule)
+	private readonly imageModule!: ImageModule;
+
+	private userAvatarPath!: string;
+
+	@postConstruct()
+	postConstruct(): void {
+		this.userAvatarPath = this.configService.getDataPath(['images']);
+	}
+
+	async findByName(orm: Orm, name: string): Promise<User | undefined> {
+		if (name.trim().length === 0) {
+			return Promise.reject(unauthError('Invalid Username'));
+		}
+		return await orm.User.findOne({ where: { name } });
+	}
+
+	async findByID(orm: Orm, id: string): Promise<User | undefined> {
+		const user = await orm.User.findOneByID(id);
+		return user ?? undefined;
+	}
+
+	// Pre-hashed dummy value used for constant-time comparison when user is not found
+	private static readonly DUMMY_HASH = '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+
+	async auth(orm: Orm, name: string, pass?: string): Promise<User | undefined> {
+		if (!pass?.trim().length) {
+			return Promise.reject(invalidParameterError('credentials', 'Invalid credentials'));
+		}
+		const trimmedPass = pass.trim();
+		const user = await this.findByName(orm, name);
+		if (!user) {
+			// Perform a dummy compare to prevent timing-based user enumeration
+			await bcryptComparePassword(trimmedPass, UserService.DUMMY_HASH);
+			return Promise.reject(invalidParameterError('credentials', 'Invalid credentials'));
+		}
+		if (!(await bcryptComparePassword(trimmedPass, user.hash))) {
+			return Promise.reject(invalidParameterError('credentials', 'Invalid credentials'));
+		}
+		return user;
+	}
+
+	public async authJWT(orm: Orm, jwtPayload?: JWTPayload): Promise<User | undefined> {
+		if (!jwtPayload?.id) {
+			return Promise.reject(invalidParameterError('token', 'Invalid token'));
+		}
+		return await orm.User.findOneByID(jwtPayload.id);
+	}
+
+	static listfyRoles(user: User): Array<UserRole> {
+		const result: Array<UserRole> = [];
+		if (user.roleAdmin) {
+			result.push(UserRole.admin);
+		}
+		if (user.roleStream) {
+			result.push(UserRole.stream);
+		}
+		if (user.rolePodcast) {
+			result.push(UserRole.podcast);
+		}
+		if (user.roleUpload) {
+			result.push(UserRole.upload);
+		}
+		return result;
+	}
+
+	private avatarImageFilename(user: User): string {
+		return path.join(this.userAvatarPath, `avatar-${user.id}.png`);
+	}
+
+	async getImage(_orm: Orm, user: User, size?: number, format?: string): Promise<ApiBinaryResult | undefined> {
+		const filename = this.avatarImageFilename(user);
+		let exists = await fse.pathExists(filename);
+		if (!exists) {
+			await this.generateAvatar(user);
+			exists = await fse.pathExists(filename);
+		}
+		if (exists) {
+			return this.imageModule.get(user.id, filename, size, format);
+		}
+		return;
+	}
+
+	async generateAvatar(user: User, seed?: string): Promise<void> {
+		const filename = this.avatarImageFilename(user);
+		await fileDeleteIfExists(filename);
+		await this.imageModule.generateAvatar(seed ?? user.name, filename);
+		await this.imageModule.clearImageCacheByIDs([user.id]);
+	}
+
+	async setUserImage(user: User, filename: string): Promise<void> {
+		const avatarImageFilename = this.avatarImageFilename(user);
+		await this.imageModule.createAvatar(filename, avatarImageFilename);
+		await fileDeleteIfExists(filename);
+		await this.imageModule.clearImageCacheByIDs([user.id]);
+	}
+
+	async validatePassword(password?: string): Promise<void> {
+		const trimmed = password?.trim();
+		if (!trimmed?.length) {
+			return Promise.reject(invalidParameterError('Invalid Password'));
+		}
+		const minLength = this.configService.env.minPasswordLength;
+		if (trimmed.length < minLength) {
+			return Promise.reject(invalidParameterError(`Password is too short (minimum ${minLength} characters)`));
+		}
+		if (commonPassword(trimmed)) {
+			return Promise.reject(new Error('Your password is found in the most frequently used password list and too easy to guess'));
+		}
+	}
+
+	async setUserPassword(orm: Orm, user: User, pass: string): Promise<void> {
+		await this.validatePassword(pass);
+		user.hash = await bcryptPassword(pass.trim());
+		await orm.User.persistAndFlush(user);
+	}
+
+	// Basic email format validation (local@domain with at least one dot in domain)
+	private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+	private static isValidEmail(email: string): boolean {
+		return this.EMAIL_REGEX.test(email);
+	}
+
+	async setUserEmail(orm: Orm, user: User, email?: string): Promise<void> {
+		if (!email?.trim().length) {
+			return Promise.reject(invalidParameterError('email', 'Invalid Email'));
+		}
+		if (!UserService.isValidEmail(email.trim())) {
+			return Promise.reject(invalidParameterError('email', 'Invalid Email format'));
+		}
+		user.email = email.trim();
+		await orm.User.persistAndFlush(user);
+	}
+
+	async remove(orm: Orm, user: User): Promise<void> {
+		await orm.User.removeAndFlush(user);
+		await this.imageModule.clearImageCacheByIDs([user.id]);
+		await fileDeleteIfExists(this.avatarImageFilename(user));
+	}
+
+	public async createUser(
+		orm: Orm,
+		name: string,
+		email: string,
+		pass: string,
+		roleAdmin: boolean,
+		roleStream: boolean,
+		roleUpload: boolean,
+		rolePodcast: boolean
+	): Promise<User> {
+		const hashAndSalt = await bcryptPassword(pass.trim());
+		const user: User = orm.User.create({ name, hash: hashAndSalt, email, roleAdmin, roleStream, roleUpload, rolePodcast });
+		await orm.User.persistAndFlush(user);
+		return user;
+	}
+
+	public async create(orm: Orm, parameters?: UserMutateParameters): Promise<User> {
+		if (!parameters?.name.trim().length) {
+			return Promise.reject(invalidParameterError('name', 'Invalid Username'));
+		}
+		const existingUser = await orm.User.findOne({ where: { name: parameters.name } });
+		if (existingUser) {
+			return Promise.reject(invalidParameterError('name', 'Username already exists'));
+		}
+		const pass = randomString(32);
+		return await this.createUser(orm, parameters.name, parameters.email ?? '', pass, !!parameters.roleAdmin, !!parameters.roleStream, !!parameters.roleUpload, !!parameters.rolePodcast);
+	}
+
+	public async update(orm: Orm, user: User, parameters?: UserMutateParameters): Promise<User> {
+		if (!parameters?.name.trim().length) {
+			return Promise.reject(invalidParameterError('name', 'Invalid Username'));
+		}
+		const existingUser = await orm.User.findOne({ where: { name: parameters.name } });
+		if (existingUser && existingUser.id !== user.id) {
+			return Promise.reject(invalidParameterError('name', 'Username already exists'));
+		}
+		user.name = parameters.name;
+		if (parameters.email && !UserService.isValidEmail(parameters.email.trim())) {
+			return Promise.reject(invalidParameterError('email', 'Invalid Email format'));
+		}
+		user.email = parameters.email?.trim() ?? user.email;
+		user.roleAdmin = !!parameters.roleAdmin;
+		user.rolePodcast = !!parameters.rolePodcast;
+		user.roleStream = !!parameters.roleStream;
+		user.roleUpload = !!parameters.roleUpload;
+		await orm.User.persistAndFlush(user);
+		return user;
+	}
+
+	public async authSubsonicPassword(orm: Orm, name?: string, pass?: string): Promise<User> {
+		if (!pass?.length) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.PARAM_MISSING));
+		}
+		const user = await orm.User.findOne({ where: { name } });
+		if (!user) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		const session = await orm.Session.findOne({ where: { user: user.id, mode: SessionMode.subsonic } });
+		if (!session) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		// Perform timing-safe comparison regardless of length to prevent timing attacks
+		// that could leak password length information
+		const sessionJwth = session.jwth ?? '';
+		const lengthMatch = pass.length === sessionJwth.length;
+		const contentMatch = lengthMatch && crypto.timingSafeEqual(Buffer.from(pass), Buffer.from(sessionJwth));
+		if (!contentMatch) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		return user;
+	}
+
+	public async authSubsonicToken(orm: Orm, name?: string | Array<string>, token?: string | Array<string>, salt?: string | Array<string>): Promise<User> {
+		// Normalize array params to first element (HTTP params can be arrays)
+		const normalizedName = Array.isArray(name) ? name.at(0) : name;
+		if (!normalizedName?.trim().length) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.PARAM_MISSING));
+		}
+		const normalizedToken = Array.isArray(token) ? token.at(0) : token;
+		if (!normalizedToken?.length) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.PARAM_MISSING));
+		}
+		const normalizedSalt = Array.isArray(salt) ? salt.at(0) : salt;
+		const user = await orm.User.findOne({ where: { name: normalizedName } });
+		if (!user) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		const session = await orm.Session.findOne({ where: { user: user.id, mode: SessionMode.subsonic } });
+		if (!session) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		const t = hashMD5(`${session.jwth}${normalizedSalt}`);
+		if (normalizedToken.length !== t.length || !crypto.timingSafeEqual(Buffer.from(normalizedToken), Buffer.from(t))) {
+			return Promise.reject(new SubsonicApiError(SubsonicFormatter.ERRORS.LOGIN_FAILED));
+		}
+		return user;
+	}
+}

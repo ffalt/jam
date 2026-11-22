@@ -1,0 +1,254 @@
+import path from 'node:path';
+import fse from 'fs-extra';
+import { SettingsService } from '../../../entity/settings/settings.service.js';
+import { IoService } from './io.service.js';
+import { AdminChangeQueueInfo } from './io/io.types.js';
+import { ConfigService } from './config.service.js';
+import { JAMSERVE_VERSION } from '../../../version.js';
+import { Orm, OrmService } from './orm.service.js';
+import { WaveformService } from '../../../entity/waveform/waveform.service.js';
+import { injectable, inject, postConstruct } from 'inversify';
+import { logger } from '../../../utils/logger.js';
+import { RootScanStrategy } from '../../../types/enums.js';
+import { UserService } from '../../../entity/user/user.service.js';
+import { SessionService } from '../../../entity/session/session.service.js';
+import { PodcastService } from '../../../entity/podcast/podcast.service.js';
+import { EpisodeService } from '../../../entity/episode/episode.service.js';
+import { GenreService } from '../../../entity/genre/genre.service.js';
+import { StatsService } from '../../../entity/stats/stats.service.js';
+import { MetadataService } from '../../../entity/metadata/metadata.service.js';
+import { AudioModule } from '../../audio/audio.module.js';
+import { StateService } from '../../../entity/state/state.service.js';
+import { NowPlayingService } from '../../../entity/nowplaying/nowplaying.service.js';
+import { PlayQueueService } from '../../../entity/playqueue/playqueue.service.js';
+import { ChatService } from '../../../entity/chat/chat.service.js';
+import { TrackService } from '../../../entity/track/track.service.js';
+import { ArtworkService } from '../../../entity/artwork/artwork.service.js';
+import { DownloadService } from '../../../entity/download/download.service.js';
+import { FolderService } from '../../../entity/folder/folder.service.js';
+import { ImageService } from '../../../entity/image/image.service.js';
+import { PlaylistService } from '../../../entity/playlist/playlist.service.js';
+import { StreamService } from '../../../entity/stream/stream.service.js';
+import { TransformService } from './transform.service.js';
+import { BookmarkService } from '../../../entity/bookmark/bookmark.service.js';
+import { LandscapeService } from '../../../entity/landscape/landscape.service.js';
+import { RateLimitService } from './ratelimit.service.js';
+
+const log = logger('Engine');
+
+@injectable()
+export class EngineService {
+	@inject(ArtworkService)
+	public artwork!: ArtworkService;
+
+	@inject(AudioModule)
+	public audio!: AudioModule;
+
+	@inject(ChatService)
+	public chat!: ChatService;
+
+	@inject(ConfigService)
+	public config!: ConfigService;
+
+	@inject(DownloadService)
+	public download!: DownloadService;
+
+	@inject(EpisodeService)
+	public episode!: EpisodeService;
+
+	@inject(FolderService)
+	public folder!: FolderService;
+
+	@inject(GenreService)
+	public genre!: GenreService;
+
+	@inject(ImageService)
+	public image!: ImageService;
+
+	@inject(IoService)
+	public io!: IoService;
+
+	@inject(LandscapeService)
+	public landscape!: LandscapeService;
+
+	@inject(MetadataService)
+	public metadata!: MetadataService;
+
+	@inject(NowPlayingService)
+	public nowPlaying!: NowPlayingService;
+
+	@inject(OrmService)
+	public orm!: OrmService;
+
+	@inject(PlaylistService)
+	public playlist!: PlaylistService;
+
+	@inject(PlayQueueService)
+	public playQueue!: PlayQueueService;
+
+	@inject(PodcastService)
+	public podcast!: PodcastService;
+
+	@inject(SessionService)
+	public session!: SessionService;
+
+	@inject(SettingsService)
+	public settings!: SettingsService;
+
+	@inject(StateService)
+	public state!: StateService;
+
+	@inject(StatsService)
+	public stats!: StatsService;
+
+	@inject(StreamService)
+	public stream!: StreamService;
+
+	@inject(TrackService)
+	public track!: TrackService;
+
+	@inject(TransformService)
+	public transform!: TransformService;
+
+	@inject(UserService)
+	public user!: UserService;
+
+	@inject(WaveformService)
+	public waveform!: WaveformService;
+
+	@inject(BookmarkService)
+	public bookmark!: BookmarkService;
+
+	@inject(RateLimitService)
+	public rateLimit!: RateLimitService;
+
+	@postConstruct()
+	postConstruct(): void {
+		this.io.registerAfterRefresh((): Promise<void> => this.afterRefresh());
+	}
+
+	private async afterRefresh(): Promise<void> {
+		this.landscape.clearCache();
+	}
+
+	private resolveCachePaths(): Array<string> {
+		return [
+			this.config.getDataPath(['cache', 'waveforms']),
+			this.config.getDataPath(['cache', 'uploads']),
+			this.config.getDataPath(['cache', 'images']),
+			this.config.getDataPath(['cache', 'transcode']),
+			this.config.getDataPath(['images']),
+			this.config.getDataPath(['podcasts'])
+		];
+	}
+
+	private async checkRescan(orm: Orm): Promise<void> {
+		const version = await this.settings.settingsVersion(orm);
+		const forceRescan = !!version && version !== JAMSERVE_VERSION;
+		if (forceRescan) {
+			log.info(`Updating from version ${version || '-'}`);
+		}
+		if (!(forceRescan || this.settings.settings.library.scanAtStart)) {
+			return;
+		}
+
+		log.info('Starting rescan');
+		this.io.root.startUpRefresh(orm, forceRescan)
+			.then(requests => {
+				if (forceRescan) {
+					this.saveVersionAfterRescan(orm, requests);
+				}
+			})
+			.catch((error: unknown) => {
+				log.error(error, 'Error on startup scanning');
+			});
+	}
+
+	private saveVersionAfterRescan(orm: Orm, requests: Array<AdminChangeQueueInfo>): void {
+		if (requests.length === 0) {
+			this.settings.saveSettings(orm)
+				.catch((error: unknown) => {
+					log.error(error, 'Error on storing the settings version');
+				});
+			return;
+		}
+		const listener = async (): Promise<void> => {
+			this.io.removeAfterRefresh(listener);
+			const errors = requests
+				.map(request => this.io.getAdminChangeQueueInfoStatus(request.id).error)
+				.filter((error): error is string => error !== undefined);
+			if (errors.length > 0) {
+				log.error('Update rescan failed, it will be repeated on the next start:', errors.join(', '));
+				return;
+			}
+			await this.settings.saveSettings(orm);
+		};
+		this.io.registerAfterRefresh(listener);
+	}
+
+	private async checkDataPaths(): Promise<void> {
+		await fse.ensureDir(path.resolve(this.config.env.paths.data));
+		const paths = this.resolveCachePaths();
+		for (const p of paths) {
+			await fse.ensureDir(p);
+		}
+	}
+
+	async init(): Promise<void> {
+		log.debug('check data paths');
+		await this.checkDataPaths();
+		log.debug('init orm');
+		await this.orm.init(this.config);
+	}
+
+	async start(): Promise<void> {
+		log.debug('start orm');
+		await this.orm.start();
+		const orm = this.orm.fork();
+		log.debug('load settings');
+		await this.settings.loadSettings(orm);
+		log.debug('check first start');
+		await this.checkFirstStart(orm);
+		log.debug('check for rescan');
+		await this.checkRescan(orm);
+	}
+
+	async stop(): Promise<void> {
+		this.io.stop();
+		await this.orm.stop();
+	}
+
+	private async buildAdminUser(orm: Orm, admin: { name: string; pass: string; mail: string }): Promise<void> {
+		await this.user.createUser(orm, admin.name, admin.mail || '', admin.pass, true, true, true, true);
+	}
+
+	private static async buildRoots(orm: Orm, roots: Array<{ name: string; path: string; strategy?: RootScanStrategy }>): Promise<void> {
+		for (const first of roots) {
+			const root = orm.Root.create({
+				name: first.name,
+				path: first.path,
+				strategy: first.strategy ?? RootScanStrategy.auto
+			});
+			await orm.Root.persistAndFlush(root);
+		}
+	}
+
+	private async checkFirstStart(orm: Orm): Promise<void> {
+		if (!this.config.firstStart) {
+			return;
+		}
+		if (this.config.firstStart.adminUser) {
+			const count = await orm.User.count();
+			if (count === 0) {
+				await this.buildAdminUser(orm, this.config.firstStart.adminUser);
+			}
+		}
+		if (!this.config.firstStart.roots) {
+			return;
+		}
+		const count = await orm.Root.count();
+		if (count === 0) {
+			await EngineService.buildRoots(orm, this.config.firstStart.roots);
+		}
+	}
+}
