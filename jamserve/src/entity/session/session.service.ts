@@ -1,0 +1,224 @@
+import { OrmService } from '../../modules/engine/services/orm.service.js';
+import { ConfigService } from '../../modules/engine/services/config.service.js';
+import { Session } from './session.js';
+import { SessionMode } from '../../types/enums.js';
+import { injectable, inject } from 'inversify';
+import { Op } from 'sequelize';
+import { SessionData } from '../../types/express.js';
+import { randomString } from '../../utils/random.js';
+
+export interface SessionNotifyEventObject {
+	clearCache(): Promise<void>;
+}
+
+@injectable()
+export class SessionService {
+	@inject(OrmService)
+	private readonly ormService!: OrmService;
+
+	@inject(ConfigService)
+	private readonly configService!: ConfigService;
+
+	private static readonly JWTH_CACHE_MAX = 10_000;
+	private readonly events: Array<SessionNotifyEventObject> = [];
+	private readonly jwthCache = new Set<string>();
+
+	expired(data: Session): boolean {
+		return data.expires ? (data.expires < new Date()) : false;
+	}
+
+	async exists(sessionID: string): Promise<boolean> {
+		return !!(await this.getSession(sessionID));
+	}
+
+	async set(sid: string, data: SessionData): Promise<void> {
+		const orm = this.ormService.fork();
+		let session = await this.getSession(sid);
+		if (!data.passport.user) {
+			if (session) {
+				await orm.Session.removeAndFlush(session);
+			}
+			return;
+		}
+		const isNewSession = !session;
+		session ??= orm.Session.create({ sessionID: sid });
+		session.expires = this.nextExpires(session, data);
+		session.jwth = data.jwth;
+		session.agent = data.userAgent || '';
+		session.client = data.client || '';
+		session.cookie = JSON.stringify(data.cookie);
+		session.mode = data.jwth ? SessionMode.jwt : SessionMode.browser;
+		if (session.user.id() !== data.passport.user) {
+			await session.user.set(await orm.User.oneOrFailByID(data.passport.user));
+		}
+		await orm.Session.persistAndFlush(session);
+		if (isNewSession) {
+			await this.clearExpiredByUserID(data.passport.user);
+		}
+	}
+
+	private nextExpires(session: Session, data: SessionData): Date | undefined {
+		if (!data.jwth) {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			return data.cookie.expires ?? undefined;
+		}
+		if (session.jwth === data.jwth) {
+			return session.expires;
+		}
+		const { maxAge } = this.configService.env.jwt;
+		return maxAge > 0 ? new Date(Date.now() + maxAge) : undefined;
+	}
+
+	async all(): Promise<Array<SessionData>> {
+		const orm = this.ormService.fork();
+		const sessions = await orm.Session.all();
+		return sessions.map(session => SessionService.toExpress(session));
+	}
+
+	async getSession(sessionID: string): Promise<Session | undefined> {
+		const session = await this.findSession(sessionID);
+		if (session && this.expired(session)) {
+			await this.remove(sessionID);
+			return;
+		}
+		return session;
+	}
+
+	private async findSession(sessionID: string): Promise<Session | undefined> {
+		const orm = this.ormService.fork();
+		return (await orm.Session.findOne({ where: { sessionID } })) ?? undefined;
+	}
+
+	async clearExpired(): Promise<void> {
+		const orm = this.ormService.fork();
+		const removed = await orm.Session.removeByQueryAndFlush({ where: { expires: { [Op.lt]: new Date() } } });
+		await this.clearCacheIfRemoved(removed);
+	}
+
+	async clearExpiredByUserID(userID: string): Promise<void> {
+		const orm = this.ormService.fork();
+		const removed = await orm.Session.removeByQueryAndFlush({ where: { user: userID, expires: { [Op.lt]: new Date() } } });
+		await this.clearCacheIfRemoved(removed);
+	}
+
+	private async clearCacheIfRemoved(removed: number): Promise<void> {
+		if (removed > 0) {
+			await this.clearCache();
+		}
+	}
+
+	async byJwth(jwth: string): Promise<Session | undefined> {
+		const orm = this.ormService.fork();
+		return (await orm.Session.findOne({ where: { jwth } }));
+	}
+
+	async byUserID(userID: string): Promise<Array<Session>> {
+		const orm = this.ormService.fork();
+		return await orm.Session.find({ where: { user: userID } });
+	}
+
+	async byID(id: string): Promise<Session | undefined> {
+		const orm = this.ormService.fork();
+		return await orm.Session.findOneByID(id);
+	}
+
+	async remove(sessionID: string): Promise<void> {
+		const session = await this.findSession(sessionID);
+		if (session?.jwth) {
+			this.jwthCache.delete(session.jwth);
+		}
+		const orm = this.ormService.fork();
+		await orm.Session.removeByQueryAndFlush({ where: { sessionID } });
+	}
+
+	async removeUserSession(id: string, userID: string): Promise<void> {
+		const orm = this.ormService.fork();
+		const session = await orm.Session.findOneByID(id);
+		if (session?.jwth) {
+			this.jwthCache.delete(session.jwth);
+		}
+		await orm.Session.removeByQueryAndFlush({ where: { id, user: userID } });
+	}
+
+	async removeByJwth(jwth: string): Promise<void> {
+		this.jwthCache.delete(jwth);
+		const orm = this.ormService.fork();
+		await orm.Session.removeByQueryAndFlush({ where: { jwth } });
+	}
+
+	async clear(): Promise<void> {
+		this.jwthCache.clear();
+		const orm = this.ormService.fork();
+		await orm.Session.removeByQueryAndFlush({});
+	}
+
+	async count(): Promise<number> {
+		const orm = this.ormService.fork();
+		return orm.Session.count();
+	}
+
+	async clearCache(): Promise<void> {
+		this.jwthCache.clear();
+		for (const notify of this.events) {
+			await notify.clearCache();
+		}
+	}
+
+	registerNotify(notify: SessionNotifyEventObject): void {
+		this.events.push(notify);
+	}
+
+	async isRevoked(jwth: string): Promise<boolean> {
+		if (this.jwthCache.has(jwth)) {
+			return false;
+		}
+		const session = await this.byJwth(jwth);
+		if (session) {
+			if (this.jwthCache.size >= SessionService.JWTH_CACHE_MAX) {
+				// Evict the oldest entry (first inserted)
+				const oldest = this.jwthCache.values().next().value;
+				if (oldest !== undefined) {
+					this.jwthCache.delete(oldest);
+				}
+			}
+			this.jwthCache.add(jwth);
+		}
+		return !session;
+	}
+
+	async get(sessionID: string): Promise<SessionData | undefined> {
+		const session = await this.getSession(sessionID);
+		if (session) {
+			return SessionService.toExpress(session);
+		}
+		return;
+	}
+
+	private static toExpress(session: Session): SessionData {
+		return {
+			cookie: JSON.parse(session.cookie),
+			client: session.client,
+			jwth: session.jwth,
+			userAgent: session.agent,
+			sessionID: session.sessionID,
+			passport: { user: session.user.idOrFail() }
+		};
+	}
+
+	async createSubsonic(userID: string): Promise<Session | undefined> {
+		const orm = this.ormService.fork();
+		let session = (await orm.Session.findOne({ where: { user: userID, mode: SessionMode.subsonic } }));
+		session ??= orm.Session.create({
+			client: 'Subsonic Client',
+			mode: SessionMode.subsonic,
+			sessionID: `${userID}_subsonic`,
+			agent: 'Subsonic Client',
+			cookie: '{}'
+		});
+		const user = await orm.User.findOneOrFailByID(userID);
+		await session.user.set(user);
+		session.jwth = randomString(32);
+		await orm.Session.persistAndFlush(session);
+		return session;
+	}
+}

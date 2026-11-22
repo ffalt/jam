@@ -1,0 +1,92 @@
+import { MediaBase } from '../tag/tag.model.js';
+import { TrackHealthHint } from '../health/health.model.js';
+import { Page } from '../base/base.model.js';
+import { ResultType } from '../../modules/rest/decorators/result-type.js';
+import { ObjectField } from '../../modules/rest/decorators/object-field.js';
+
+@ResultType({ description: 'Track Base' })
+export class TrackBase extends MediaBase {
+	@ObjectField({ description: 'Parent Folder Id', isID: true })
+	parentID!: string;
+}
+
+@ResultType({ description: 'Track' })
+export class Track extends TrackBase {
+}
+
+@ResultType({ description: 'Tracks Page' })
+export class TrackPage extends Page {
+	@ObjectField(() => Track, { description: 'List of Tracks' })
+	items!: Array<Track>;
+}
+
+@ResultType({ description: 'Track Health' })
+export class TrackHealth {
+	@ObjectField(() => TrackBase, { description: 'Track' })
+	track!: TrackBase;
+
+	@ObjectField(() => [TrackHealthHint], { description: 'List of Health Hints' })
+	health!: Array<TrackHealthHint>;
+}
+
+@ResultType({ description: 'Track Lyrics Line (parsed from Synced Lyrics)' })
+export class TrackLyricsLine {
+	@ObjectField({ description: 'Start of the Line in Milliseconds', example: 100 })
+	timestamp!: number;
+
+	@ObjectField({ description: 'Text of the Line', example: 'I got a letter from the government' })
+	text!: string;
+}
+
+@ResultType({ description: 'Track Lyrics (via External Service, Lyrics File or Audio Tag)' })
+export class TrackLyrics {
+	@ObjectField({
+		nullable: true,
+		description: 'Lyrics',
+		example: 'I got a letter from the government\nThe other day\nI opened and read it\nIt said they were suckers\n They wanted me for their army or whatever\n Picture me given’ a damn, I said never.'
+	})
+	lyrics?: string;
+
+	@ObjectField({
+		nullable: true,
+		description: 'Synced Lyrics',
+		example: '[00:00.10]I got a letter from the government\n[00:02.30]The other day\n[00:04.50]I opened and read it\n[00:06.20]It said they were suckers\n[00:08.10] They wanted me for their army or whatever\n[00:10.40] Picture me given’ a damn, I said never.'
+	})
+	syncedLyrics?: string;
+
+	@ObjectField(() => [TrackLyricsLine], { nullable: true, description: 'Parsed Synced Lyrics' })
+	syncedLines?: Array<TrackLyricsLine>;
+
+	@ObjectField({ nullable: true, description: 'Language of the the lyrics' })
+	language?: string;
+
+	@ObjectField({ nullable: true, description: 'Audio Tag, Lyrics File or External Service' })
+	source?: string;
+}
+
+@ResultType({ description: 'Lyrics Sidecar File of a Track' })
+export class TrackLyricsSidecar {
+	@ObjectField({ description: 'File Name of the Lyrics Sidecar', example: 'Artist - Song.lrc' })
+	name!: string;
+
+	@ObjectField({ description: 'The Sidecar holds synced lyrics', example: true })
+	synced!: boolean;
+
+	@ObjectField({ nullable: true, description: 'Origin of the Lyrics, taken from the by tag of the file', example: 'https://lrclib.net/api/get/12345' })
+	source?: string;
+
+	@ObjectField({ description: 'The Sidecar was written by Jam', example: true })
+	writtenByJam!: boolean;
+}
+
+@ResultType({ description: 'Track Lyrics Sidecar List' })
+export class TrackLyricsSidecarList {
+	@ObjectField(() => [TrackLyricsSidecar], { description: 'List of Lyrics Sidecar Files found for the Track' })
+	entries!: Array<TrackLyricsSidecar>;
+}
+
+@ResultType({ description: 'Track Lyrics List' })
+export class TrackLyricsList {
+	@ObjectField(() => [TrackLyrics], { description: 'List of Lyrics found for the Track' })
+	entries!: Array<TrackLyrics>;
+}

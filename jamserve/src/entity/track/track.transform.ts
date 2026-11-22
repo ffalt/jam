@@ -1,0 +1,44 @@
+import { injectable, inject } from 'inversify';
+import { Orm } from '../../modules/engine/services/orm.service.js';
+import { User } from '../user/user.js';
+import { DBObjectType, JamObjectType } from '../../types/enums.js';
+import { BaseTransformService } from '../base/base.transform.js';
+import { Track as ORMTrack } from './track.js';
+import { IncludesTrackParameters } from './track.parameters.js';
+import { TrackBase } from './track.model.js';
+import { TrackService } from './track.service.js';
+import { GenreTransformService } from '../genre/genre.transform.js';
+
+@injectable()
+export class TrackTransformService extends BaseTransformService {
+	@inject(TrackService)
+	public trackService!: TrackService;
+
+	@inject(GenreTransformService)
+	public Genre!: GenreTransformService;
+
+	async trackBases(orm: Orm, list: Array<ORMTrack>, trackParameters: IncludesTrackParameters, user: User): Promise<Array<TrackBase>> {
+		return await Promise.all(list.map(t => this.trackBase(orm, t, trackParameters, user)));
+	}
+
+	async trackBase(orm: Orm, o: ORMTrack, trackParameters: IncludesTrackParameters, user: User): Promise<TrackBase> {
+		const tag = await o.tag.get();
+		return {
+			id: o.id,
+			name: o.fileName || o.name,
+			objType: JamObjectType.track,
+			created: o.createdAt.valueOf(),
+			duration: tag?.mediaDuration ?? 0,
+			parentID: o.folder.idOrFail(),
+			artistID: o.artist.id(),
+			albumArtistID: o.albumArtist.id(),
+			albumID: o.album.id(),
+			seriesID: o.series.id() ?? undefined,
+			genres: trackParameters.trackIncGenres ? await this.Genre.genreBases(orm, await o.genres.getItems(), {}, user) : undefined,
+			tag: trackParameters.trackIncTag ? await this.mediaTag(orm, tag) : undefined,
+			media: trackParameters.trackIncMedia ? await this.trackMedia(tag, o.fileSize) : undefined,
+			tagRaw: trackParameters.trackIncRawTag ? await this.trackService.getRawTag(o) : undefined,
+			state: trackParameters.trackIncState ? await this.state(orm, o.id, DBObjectType.track, user.id) : undefined
+		};
+	}
+}

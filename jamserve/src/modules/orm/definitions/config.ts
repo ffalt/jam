@@ -1,0 +1,11 @@
+import { AnyEntity, Constructor } from '../typings.js';
+import { EntityRepository } from '../helpers/repository.js';
+import { Options } from 'sequelize';
+
+export type ORMConfigRepositories = Record<string, Constructor<EntityRepository<any>> | undefined>;
+
+export interface ORMConfig {
+	options: Options;
+	entities: Array<AnyEntity>;
+	repositories: ORMConfigRepositories;
+}

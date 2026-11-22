@@ -1,0 +1,46 @@
+import { TranscoderStream } from './transcoder-stream.js';
+import { LiveTranscoderStream } from './transcoder-live-stream.js';
+import { IDFolderCache } from '../../../utils/id-file-cache.js';
+import { logger } from '../../../utils/logger.js';
+
+const log = logger('Audio:Transcoder');
+
+export interface TranscoderResult {
+	file: {
+		filename: string;
+		name: string;
+	};
+}
+
+export class TranscoderModule {
+	private readonly transcodeCache: IDFolderCache<{ maxBitRate?: number; format: string }>;
+
+	constructor(transcodeCachePath: string) {
+		this.transcodeCache = new IDFolderCache<{ maxBitRate?: number; format: string }>(
+			transcodeCachePath,
+			'transcode',
+			(parameters: { maxBitRate?: number; format: string }) => {
+				const suffix = parameters.maxBitRate ? `-${parameters.maxBitRate}` : '';
+				return `${suffix}.${parameters.format}`;
+			}
+		);
+	}
+
+	async get(filename: string, id: string, format: string, maxBitRate: number): Promise<TranscoderResult> {
+		if (!TranscoderStream.validTranscoding(format)) {
+			return Promise.reject(new Error('Unsupported transcoding format'));
+		}
+		return this.transcodeCache.get(id, { format, maxBitRate }, async cacheFilename => {
+			log.debug('Writing transcode cache file', cacheFilename);
+			await TranscoderStream.transcodeToFile(filename, cacheFilename, format, maxBitRate);
+		});
+	}
+
+	getLive(filename: string, format: string, maxBitRate: number, timeOffset?: number): LiveTranscoderStream {
+		return new LiveTranscoderStream(filename, format, maxBitRate, timeOffset);
+	}
+
+	async clearCacheByIDs(ids: Array<string>): Promise<void> {
+		await this.transcodeCache.removeByIDs(ids);
+	}
+}

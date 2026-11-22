@@ -1,0 +1,149 @@
+import fse from 'fs-extra';
+import path from 'node:path';
+import { AudioModule } from '../../modules/audio/audio.module.js';
+import { ImageModule } from '../../modules/image/image.module.js';
+import { downloadFile } from '../../utils/download.js';
+import { isSupportedAudioFormat } from '../../utils/filetype.js';
+import { fileDeleteIfExists, fileSuffix } from '../../utils/fs-utils.js';
+import { logger } from '../../utils/logger.js';
+import { injectable, inject, postConstruct } from 'inversify';
+import { DebouncePromises } from '../../utils/debounce-promises.js';
+import { Orm } from '../../modules/engine/services/orm.service.js';
+import { Episode, EpisodeEnclosure } from './episode.js';
+import { PodcastStatus } from '../../types/enums.js';
+import { ConfigService } from '../../modules/engine/services/config.service.js';
+import { ApiBinaryResult } from '../../modules/deco/express/express-responder.js';
+import { errorToString } from '../../utils/error.js';
+
+const log = logger('EpisodeService');
+
+@injectable()
+export class EpisodeService {
+	private readonly episodeDownloadDebounce = new DebouncePromises<void>();
+	private podcastsPath!: string;
+	@inject(AudioModule)
+	private readonly audioModule!: AudioModule;
+
+	@inject(ImageModule)
+	private readonly imageModule!: ImageModule;
+
+	@inject(ConfigService)
+	private readonly configService!: ConfigService;
+
+	@postConstruct()
+	postConstruct(): void {
+		this.podcastsPath = this.configService.getDataPath(['podcasts']);
+	}
+
+	isDownloading(podcastEpisodeId: string): boolean {
+		return this.episodeDownloadDebounce.isPending(podcastEpisodeId);
+	}
+
+	private async downloadEpisodeFile(episode: Episode): Promise<string> {
+		const enclosures: Array<EpisodeEnclosure> | undefined = episode.enclosuresJSON ? JSON.parse(episode.enclosuresJSON) : undefined;
+		const url = enclosures?.at(0)?.url;
+		if (!url) {
+			throw new Error('No podcast episode url found');
+		}
+		let suffix = fileSuffix(url);
+		if (suffix.includes('?')) {
+			suffix = suffix.slice(0, suffix.indexOf('?'));
+		}
+		if (!isSupportedAudioFormat(suffix)) {
+			throw new Error(`Unsupported Podcast audio format .${suffix}`);
+		}
+		const podcastID = episode.podcast.idOrFail();
+		const p = path.resolve(this.podcastsPath, podcastID);
+		await fse.ensureDir(p);
+		const filename = path.join(p, `${episode.id}.${suffix}`);
+		log.info('retrieving file', url);
+		await downloadFile(url, filename);
+		return filename;
+	}
+
+	async downloadEpisode(orm: Orm, episode: Episode): Promise<void> {
+		if (this.episodeDownloadDebounce.isPending(episode.id)) {
+			return this.episodeDownloadDebounce.append(episode.id);
+		}
+		this.episodeDownloadDebounce.setPending(episode.id);
+		try {
+			try {
+				const filename = await this.downloadEpisodeFile(episode);
+				const stat = await fse.stat(filename);
+				const result = await this.audioModule.read(filename);
+				const oldTag = await episode.tag.get();
+				if (oldTag) {
+					orm.Tag.removeLater(oldTag);
+				}
+				const tag = orm.Tag.createByScan(result, filename);
+				orm.Tag.persistLater(tag);
+				await episode.tag.set(tag);
+				episode.status = PodcastStatus.completed;
+				episode.statCreated = stat.ctime;
+				episode.statModified = stat.mtime;
+				episode.fileSize = stat.size;
+				episode.duration = result.mediaDuration;
+				episode.path = filename;
+			} catch (error: unknown) {
+				episode.status = PodcastStatus.error;
+				episode.error = errorToString(error);
+			}
+			await orm.Episode.persistAndFlush(episode);
+			this.episodeDownloadDebounce.resolve(episode.id, undefined);
+		} catch (error: unknown) {
+			this.episodeDownloadDebounce.resolve(episode.id, undefined);
+			return Promise.reject(error);
+		}
+	}
+
+	async removeEpisodes(orm: Orm, podcastID: string): Promise<void> {
+		const removableEpisodes = await orm.Episode.find({ where: { podcast: podcastID } });
+		await this.imageModule.clearImageCacheByIDs(removableEpisodes.map(it => it.id));
+		for (const episode of removableEpisodes) {
+			orm.Episode.removeLater(episode);
+			if (episode.path) {
+				await fileDeleteIfExists(episode.path);
+			}
+		}
+	}
+
+	async deleteEpisode(orm: Orm, episode: Episode): Promise<void> {
+		if (!episode.path) {
+			return;
+		}
+		await fileDeleteIfExists(episode.path);
+		const tag = await episode.tag.get();
+		if (tag) {
+			orm.Tag.removeLater(tag);
+		}
+		await episode.tag.set(undefined);
+		episode.path = undefined;
+		episode.statCreated = undefined;
+		episode.statModified = undefined;
+		episode.fileSize = undefined;
+		episode.status = PodcastStatus.deleted;
+		await orm.Episode.persistAndFlush(episode);
+	}
+
+	async getImage(episode: Episode, size?: number, format?: string): Promise<ApiBinaryResult | undefined> {
+		if (!episode.path) {
+			return;
+		}
+		const tag = await episode.tag.get();
+		if (tag?.nrTagImages) {
+			const result = await this.imageModule.getExisting(episode.id, size, format);
+			if (result) {
+				return result;
+			}
+			try {
+				const buffer = await this.audioModule.extractTagImage(episode.path);
+				if (buffer) {
+					return await this.imageModule.getBuffer(episode.id, buffer, size, format);
+				}
+			} catch {
+				log.error('getImage', `Extracting image from audio failed: ${episode.path}`);
+			}
+		}
+		return;
+	}
+}

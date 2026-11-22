@@ -1,0 +1,94 @@
+// @generated
+// This file was automatically generated and should not be edited.
+
+import { type HttpEvent, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import type { Observable } from 'rxjs';
+
+import { JamAuthService } from './jam.auth.service';
+import { type HTTPResponseType, JamHttpService } from './jam.http.service';
+
+type GenericParameters = Record<string, string | Array<string> | undefined>;
+
+@Injectable()
+export class JamBaseService {
+	private readonly http = inject(JamHttpService);
+	private readonly authService = inject(JamAuthService);
+
+	buildRequest(view: string, params: GenericParameters = {}): { url: string; parameters: HttpParams } {
+		let result = new HttpParams();
+		for (const [key, value] of Object.entries(params)) {
+			if (value !== undefined) {
+				if (Array.isArray(value)) {
+					for (const sub of value) {
+						result = result.append(key, sub);
+					}
+				} else {
+					result = result.append(key, value);
+				}
+			}
+		}
+		return { url: `${this.authService.auth?.server}${JamAuthService.apiPrefix}${view}`, parameters: result };
+	}
+
+	buildUrl(view: string, params: unknown): string {
+		const { url, parameters } = this.buildRequest(view, params as GenericParameters);
+		const flat = parameters.toString();
+		return url + (flat ? `?${flat}` : '');
+	}
+
+	async raw(view: string, params?: unknown): Promise<{ buffer: ArrayBuffer; contentType: string }> {
+		const { url, parameters } = this.buildRequest(view, params as GenericParameters);
+		return this.http.raw(url, { ...this.authService.getHTTPOptions(), params: parameters });
+	}
+
+	async get<T>(view: string, params: unknown, responseType?: HTTPResponseType): Promise<T> {
+		const { url, parameters } = this.buildRequest(view, params as GenericParameters);
+		return this.http.get(url, { ...this.authService.getHTTPOptions(), responseType, params: parameters });
+	}
+
+	async post<T>(view: string, params: unknown, body: unknown): Promise<T> {
+		return this.http.post<T>(this.buildUrl(view, params), body, this.authService.getHTTPOptions());
+	}
+
+	async requestString(path: string, params: unknown): Promise<string> {
+		return this.authService.isLoggedIn() ? this.get<string>(path, params, 'text') : Promise.reject(new Error('Not logged in'));
+	}
+
+	async requestData<T>(path: string, params: unknown): Promise<T> {
+		return this.authService.isLoggedIn() ? this.get<T>(path, params) : Promise.reject(new Error('Not logged in'));
+	}
+
+	async requestPostData<T>(path: string, params: unknown): Promise<T> {
+		return this.authService.isLoggedIn() ? this.post<T>(path, {}, params) : Promise.reject(new Error('Not logged in'));
+	}
+
+	async requestPostDataOK(path: string, params: unknown): Promise<void> {
+		await this.requestPostData(path, params);
+	}
+
+	async requestOK(path: string, params: unknown): Promise<void> {
+		await this.requestData(path, params);
+	}
+
+	buildRequestUrl(view: string, params?: unknown): string {
+		return this.buildUrl(view, params);
+	}
+
+	async binary(path: string, params?: unknown): Promise<{ buffer: ArrayBuffer; contentType: string }> {
+		return this.authService.isLoggedIn() ? this.raw(path, params) : Promise.reject(new Error('Not logged in'));
+	}
+
+	upload<T>(path: string, params: unknown, name: string, file: File): Observable<HttpEvent<T>> {
+		const formData = new FormData();
+		const data = params as Record<string, string>;
+		for (const [key, value] of Object.entries(data)) {
+			formData.append(key, value);
+		}
+		formData.append(name, file);
+		const url = this.buildUrl(path, {});
+		const options = this.authService.getHTTPOptions();
+		options.reportUploadProgress = true;
+		return this.http.postObserve<T>(url, formData, options);
+	}
+}
