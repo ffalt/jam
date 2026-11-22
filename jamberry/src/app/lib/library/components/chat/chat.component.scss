@@ -1,0 +1,69 @@
+@use "_scss/variables";
+@use "_scss/mixins/input";
+
+:host {
+	width: 100%;
+	position: relative;
+	flex: 0 1 100%;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+	.messages {
+		padding: variables.$padding;
+		flex-grow: 1;
+		width: 100%;
+		display: flex;
+		overflow-y: auto;
+		flex-flow: column wrap;
+		margin-bottom: variables.$margin;
+		user-select: none;
+
+		.message {
+			display: flex;
+			flex-flow: row wrap;
+
+			> div {
+				margin-left: variables.$margin-sm;
+			}
+
+			.time, .username {
+				font-size: variables.$x-small;
+			}
+
+			.text {
+				color: var(--on-control-ambient-hover);
+			}
+
+			&.grouped {
+				.username, .avatar {
+					display: none;
+				}
+
+				.time {
+					padding-top: variables.$padding-xs;
+				}
+			}
+		}
+
+	}
+
+	.chat-input {
+		border-bottom: 1px solid transparent;
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
+		padding: variables.$padding;
+		background-color: var(--control);
+
+		@include input.input-box;
+
+		.input-box, input {
+			width: 100%;
+		}
+
+		button {
+			margin-left: variables.$margin-sm;
+		}
+	}
+}

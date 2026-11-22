@@ -1,0 +1,24 @@
+@use "_scss/variables";
+
+:host {
+	display: block;
+
+	.group {
+		text-transform: uppercase;
+		letter-spacing: 1.25px;
+		font-size: variables.$x-small * 1.2;
+		padding-top: variables.$margin-lg;
+		padding-bottom: variables.$margin-sm;
+		color: var(--on-control-ambient);
+		min-height: 30px;
+
+		&:first-of-type {
+			padding-top: variables.$margin-sm;
+			margin-top: -40px;
+		}
+	}
+
+	.plates {
+		border-top: 1px solid var(--background-border);
+	}
+}

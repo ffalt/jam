@@ -1,0 +1,151 @@
+import { Component, DestroyRef, inject, Injector, type OnInit, signal, viewChild, ViewContainerRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+import { Hotkey, HotkeysService } from '@modules/hotkeys';
+import { TabPortalOutlet } from '@modules/tab-portal';
+import { ThemeService } from '@modules/theme';
+import { HOTKEYS } from '@utils/keys';
+import { JamAuthService } from '@jam';
+import { DeferLoadService } from '@modules/defer-load/defer-load.service';
+import { PlayerService } from '@core/services/player/player.service';
+import { QueueService } from '@core/services/queue/queue.service';
+import { AppService } from '@core/services/app/app.service';
+import { SettingsStoreService } from '@core/services/settings-store/settings-store.service';
+import { HeaderComponent } from './lib/header/components/header/header.component';
+import { PlayerBarComponent } from './lib/player/components/player-bar/player-bar.component';
+import { MainTabsService } from './lib/main-tabs/services/main-tabs.service';
+
+@Component({
+	// eslint-disable-next-line @angular-eslint/component-selector
+	selector: 'body',
+	templateUrl: './app.component.html',
+	styleUrls: ['./app.component.scss'],
+	host: {
+		'[class.expand]': 'expandBody',
+		'[class.logged-in]': '!!auth.user',
+		'(window:scroll)': 'scrollTrack()',
+		'(window:resize)': 'resize()'
+	},
+	imports: [HeaderComponent, PlayerBarComponent]
+})
+export class AppComponent implements OnInit {
+	private static readonly nowPlayingRoute = '/library/playing';
+	readonly tabContentOutlet = viewChild.required('tabContentOutlet', { read: ViewContainerRef });
+	readonly player = inject(PlayerService);
+	readonly queue = inject(QueueService);
+	readonly app = inject(AppService);
+	readonly auth = inject(JamAuthService);
+	readonly nowPlayingActive = signal(false);
+	private readonly tabService = inject(MainTabsService);
+	private readonly lifeRef = inject(DestroyRef);
+	private readonly hotkeysService = inject(HotkeysService);
+	private readonly router = inject(Router);
+	private readonly deferLoadService = inject(DeferLoadService);
+	private readonly settingsStore = inject(SettingsStoreService);
+	private readonly themeService = inject(ThemeService);
+	private readonly injector = inject(Injector);
+
+	constructor() {
+		this.lifeRef.onDestroy(() => {
+			this.tabService.dispose();
+		});
+		this.init();
+	}
+
+	get expandBody(): boolean {
+		return this.tabService.mainTab.active();
+	}
+
+	ngOnInit(): void {
+		this.tabService.init(new TabPortalOutlet(this.tabService.tabs, this.tabContentOutlet(), this.injector));
+	}
+
+	init() {
+		this.settingsStore.settingsChange
+			.pipe(takeUntilDestroyed(this.lifeRef))
+			.subscribe(() => {
+				this.setTheme();
+			});
+		if (!this.auth.loaded) {
+			this.auth.load().catch((error: unknown) => {
+				console.error(error);
+			});
+		}
+		this.router.events.forEach(() => {
+			this.tabService.switchToMain();
+			this.nowPlayingActive.set(this.router.url.startsWith(AppComponent.nowPlayingRoute));
+		}).catch((error: unknown) => {
+			console.error(error);
+		});
+		this.app.standalone = this.isStandaloneWebApp() || this.isElectronApp() || this.isMacGapApp();
+		this.setTheme();
+		this.setKeyboardShortcuts();
+		this.determinateScreen();
+	}
+
+	isStandaloneWebApp(): boolean {
+		return (navigator.standalone === true) || (matchMedia('(display-mode: standalone)').matches);
+	}
+
+	isElectronApp(): boolean {
+		return (navigator.userAgent.toLowerCase().includes('electron/'));
+	}
+
+	isMacGapApp(): boolean {
+		return (navigator.userAgent.includes('MacGap'));
+	}
+
+	setTheme(): void {
+		this.themeService.setTheme(this.app.settings.theme || 'dark');
+	}
+
+	scrollTrack(): void {
+		this.deferLoadService.notifyScroll({ name: 'app' });
+	}
+
+	resize(): void {
+		this.determinateScreen();
+		this.tabService.switchToMain();
+	}
+
+	private determinateScreen(): void {
+		this.app.smallscreen = window.innerHeight < 400 || window.innerWidth < 522;
+	}
+
+	private setKeyboardShortcuts(): void {
+		this.hotkeysService.add(new Hotkey(HOTKEYS.playPause.shortcut, (): boolean => {
+			this.player.togglePlayPause();
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.playPause.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.nextTrack.shortcut, (): boolean => {
+			this.player.next();
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.nextTrack.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.previousTrack.shortcut, (): boolean => {
+			this.player.previous();
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.previousTrack.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.volumeUp.shortcut, (): boolean => {
+			this.player.volumeUp();
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.volumeUp.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.forward.shortcut, (): boolean => {
+			this.player.forward(10);
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.forward.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.rewind.shortcut, (): boolean => {
+			this.player.rewind(10);
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.rewind.name));
+
+		this.hotkeysService.add(new Hotkey(HOTKEYS.volumeDown.shortcut, (): boolean => {
+			this.player.volumeDown();
+			return false; // Prevent bubbling
+		}, undefined, HOTKEYS.volumeDown.name));
+	}
+}

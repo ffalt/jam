@@ -1,0 +1,12 @@
+@use "_scss/mixins/view";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	display: block;
+
+	.start {
+		@include view.view-host;
+	}
+}

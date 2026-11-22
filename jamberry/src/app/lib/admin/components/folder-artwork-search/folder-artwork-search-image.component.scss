@@ -1,0 +1,66 @@
+@use "_scss/variables";
+
+:host {
+	.image-selector {
+		display: flex;
+		flex-flow: column wrap;
+		height: calc(100% - 40px);
+	}
+
+	.image-buttons {
+		height: 40px;
+	}
+
+	.artwork {
+		overflow-y: auto;
+		width: 50%;
+		height: 100%;
+		padding-left: variables.$padding;
+	}
+
+	.art-source {
+		padding-right: variables.$padding;
+		overflow-y: auto;
+		width: 50%;
+		height: 100%;
+		border-right: 1px solid var(--background-border);
+
+		.images {
+			> div {
+				display: inline-block;
+
+				.image {
+					display: inline-block;
+					padding-top: 15px;
+					padding-right: 15px;
+					font-size: 0.8em;
+
+					img {
+						width: 185px;
+						min-width: 185px;
+						min-height: 185px;
+						height: auto;
+					}
+				}
+
+				.footer {
+					font-size: 0.8em;
+				}
+			}
+		}
+	}
+
+	.section {
+		border-bottom: 1px solid var(--background-border);
+		padding-bottom: variables.$padding-xs;
+
+		a {
+			color: var(--on-background-highlight);
+			margin-right: variables.$margin-lg;
+
+			&:hover {
+				color: var(--on-background);
+			}
+		}
+	}
+}

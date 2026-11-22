@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Jam</title>
+	<meta content="Jam Media Player" name="description">
+	<base href="/">
+	<meta content="width=device-width, initial-scale=1" name="viewport">
+
+	<meta
+		http-equiv="Content-Security-Policy" content="
+                default-src 'self';
+                base-uri 'self';
+                font-src 'self' data:;
+                form-action 'self';
+                img-src 'self' data: blob: https:;
+                object-src 'none';
+                script-src 'self';
+                script-src-attr 'none';
+                style-src 'self' 'unsafe-inline';
+                upgrade-insecure-requests;
+                media-src 'self' data: blob: https:;
+                connect-src 'self' https: wss:;
+        "
+	>
+
+	<link href="assets/app/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
+	<link href="assets/app/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
+	<link href="assets/app/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">
+	<link href="assets/app/manifest.json" rel="manifest">
+	<link color="#d80e0e" href="assets/app/safari-pinned-tab.svg" rel="mask-icon">
+	<link href="assets/app/favicon.ico" rel="shortcut icon">
+	<meta content="Jam" name="apple-mobile-web-app-title">
+	<meta content="yes" name="apple-mobile-web-app-capable">
+	<meta content="Jam" name="application-name">
+	<meta content="#2b5797" name="msapplication-TileColor">
+	<meta content="assets/app/browserconfig.xml" name="msapplication-config">
+	<meta content="#ffffff" name="theme-color">
+	<meta content="yes" name="mobile-web-app-capable">
+	<script src="assets/config/config.js" type="text/javascript"></script>
+	<style>
+		.loading-container {
+			background: rgb(24, 24, 24);
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			opacity: 1.0;
+			z-index: 999999;
+			-webkit-transition: 1s linear all; /* Chrome */
+			transition: 1s linear all;
+			vertical-align: middle;
+			font-family: "LatoWeb", "Helvetica Neue", sans-serif;
+		}
+
+		.loading-container .loading-info {
+			left: 0;
+			position: absolute;
+			right: 0;
+			text-align: center;
+			top: 50%;
+			font-size: 26px;
+			color: white;
+			line-height: 36px;
+			margin: -37px 0 20px;
+		}
+
+		.loading-container .loading-info .loader {
+			display: block;
+			margin: auto auto;
+			/*vertical-align: top;*/
+			/*margin-right: 3px;*/
+		}
+
+		.loading-container .loading-info .loader rect {
+			fill: tomato;
+		}
+
+		.shine {
+			text-shadow: 0 2px 3px #555;
+		}
+
+	</style>
+</head>
+<body>
+<div class="loading-container">
+	<div class="loading-info">
+		<svg class="loader" height="60" viewBox="0 0 24 30" width="48" xmlns="http://www.w3.org/2000/svg">
+			<rect height="5" width="4" y="13">
+				<animate attributeName="height" attributeType="XML" begin="0s" dur="1.0s" repeatCount="indefinite" values="5;21;5"></animate>
+				<animate attributeName="y" attributeType="XML" begin="0s" dur="1.0s" repeatCount="indefinite" values="13; 5; 13"></animate>
+			</rect>
+			<rect height="5" width="4" x="10" y="13">
+				<animate attributeName="height" attributeType="XML" begin="0.15s" dur="1.0s" repeatCount="indefinite" values="5;21;5"></animate>
+				<animate attributeName="y" attributeType="XML" begin="0.15s" dur="1.0s" repeatCount="indefinite" values="13; 5; 13"></animate>
+			</rect>
+			<rect height="5" width="4" x="20" y="13">
+				<animate attributeName="height" attributeType="XML" begin="0.3s" dur="1.0s" repeatCount="indefinite" values="5;21;5"></animate>
+				<animate attributeName="y" attributeType="XML" begin="0.3s" dur="1.0s" repeatCount="indefinite" values="13; 5; 13"></animate>
+			</rect>
+		</svg>
+		<div class="shine">Jam</div>
+	</div>
+</div>
+</body>
+</html>

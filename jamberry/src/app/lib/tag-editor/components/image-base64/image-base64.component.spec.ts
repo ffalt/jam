@@ -1,0 +1,25 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { ImageBase64Component } from './image-base64.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('ImageBase64Component', () => {
+	let component: ImageBase64Component;
+	let fixture: ComponentFixture<ImageBase64Component>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [ImageBase64Component],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(ImageBase64Component);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

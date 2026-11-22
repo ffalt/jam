@@ -1,0 +1,75 @@
+@use "_scss/variables";
+@use "_scss/mixins/list";
+
+:host {
+	.section {
+		margin-bottom: variables.$margin-lg;
+	}
+
+	.section-title {
+		text-transform: uppercase;
+		letter-spacing: 1.25px;
+		font-size: variables.$x-small * 1.2;
+		margin-bottom: variables.$margin-sm;
+		color: var(--on-control-ambient);
+
+		app-discogs-icon {
+			vertical-align: middle;
+			margin-left: 6px;
+		}
+	}
+
+	@include list.key-value-list;
+
+	.country-selector {
+		margin-bottom: variables.$margin-sm;
+	}
+
+	.discogs-images {
+		display: flex;
+		flex-wrap: wrap;
+		gap: variables.$padding-xs;
+		margin-bottom: variables.$margin-sm;
+
+		img {
+			width: 150px;
+			height: 150px;
+			object-fit: cover;
+		}
+	}
+
+	.discogs-notes {
+		color: var(--on-control-ambient);
+		line-height: 1.5;
+		margin: variables.$margin-xl 0;
+		white-space: pre-wrap;
+	}
+
+	.track, .track-heading {
+		margin-bottom: variables.$margin-sm;
+	}
+
+	.track-heading {
+		color: var(--on-control-ambient);
+	}
+
+	.track-row {
+		display: flex;
+		gap: variables.$padding-xs;
+
+		.track-pos {
+			min-width: 2em;
+			color: var(--on-control-ambient);
+			flex-shrink: 0;
+		}
+
+		.track-title {
+			flex: 1;
+		}
+
+		.track-dur {
+			color: var(--on-control-ambient);
+			flex-shrink: 0;
+		}
+	}
+}

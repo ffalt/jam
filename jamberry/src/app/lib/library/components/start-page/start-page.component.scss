@@ -1,0 +1,33 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+
+:host {
+	.start {
+		@include view.view-host;
+
+		.header-start {
+			@include view.view-header;
+			@include view.view-header-slim;
+
+			.img {
+				text-align: center;
+
+				app-logo-icon {
+					height: 130px;
+					width: 130px;
+
+					@media (max-width: variables.$break-phone) {
+						height: 60px;
+						width: 60px;
+					}
+				}
+			}
+		}
+
+		.content {
+			@include view.view-content;
+
+			padding: 0 variables.$padding variables.$padding-xl;
+		}
+	}
+}

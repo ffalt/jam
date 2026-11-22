@@ -1,0 +1,108 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+@use "_scss/mixins/table";
+
+:host {
+	.sessions {
+		@include view.view-host;
+
+		.content {
+			@include view.view-content;
+
+			padding: variables.$padding variables.$padding variables.$padding-xl;
+
+			.subsonic {
+				padding-bottom: variables.$padding-lg;
+
+				.token {
+					margin-top: 20px;
+				}
+
+				code {
+					padding: 20px;
+					display: inline-block;
+					background-color: var(--control);
+					color: var(--on-control-ambient);
+				}
+
+				button {
+					margin-top: variables.$margin;
+				}
+			}
+
+			.session-list {
+				@include table.flex-table;
+
+				.session {
+					@include table.flex-table-row;
+					@include table.flex-table-data-row;
+
+					.agent {
+						font-size: 0.8em;
+						flex-grow: 1;
+						padding-right: variables.$padding-sm;
+					}
+
+					.expires {
+						width: 260px;
+						font-size: 0.8em;
+						padding-right: variables.$padding-sm;
+					}
+
+					.remove {
+						button {
+							cursor: pointer;
+							color: var(--on-background);
+
+							&:hover {
+								color: var(--on-background-hover);
+							}
+						}
+					}
+
+					.title {
+						padding-right: variables.$padding-sm;
+						width: 140px;
+
+						span {
+							font-size: 0.7em;
+							text-transform: uppercase;
+						}
+					}
+
+					&.invalid {
+						color: var(--on-control-ambient-disabled);
+
+						.expires {
+							color: var(--accent);
+						}
+					}
+
+					@media (max-width: variables.$break-mobile) {
+						.agent, .expires {
+							width: 100%;
+						}
+
+						.title {
+							order: 0;
+							width: calc(100% - 30px);;
+						}
+
+						.remove {
+							order: 1;
+						}
+
+						.agent {
+							order: 2;
+						}
+
+						.expires {
+							order: 3;
+						}
+
+					}
+				}
+			}
+		}
+	}
+}

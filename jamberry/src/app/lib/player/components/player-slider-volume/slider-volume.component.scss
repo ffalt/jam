@@ -1,0 +1,7 @@
+@use "_scss/mixins/slider";
+
+:host {
+	width: 100%;
+
+	@include slider.slider(28px, 8px);
+}

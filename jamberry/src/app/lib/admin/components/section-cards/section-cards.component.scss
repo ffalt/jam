@@ -1,0 +1,18 @@
+@use "_scss/variables";
+@use "_scss/mixins/cards";
+
+:host {
+	@include cards.media-cards;
+
+	.section-card {
+		@include cards.media-card;
+
+		.image {
+			min-height: 135px;
+			min-width: 135px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+	}
+}

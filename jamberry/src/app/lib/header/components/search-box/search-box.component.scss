@@ -1,0 +1,11 @@
+@use "_scss/variables";
+@use "_scss/mixins/input";
+
+:host {
+	form {
+		@include input.input-box-content;
+
+		display: flex;
+		flex-wrap: nowrap;
+	}
+}

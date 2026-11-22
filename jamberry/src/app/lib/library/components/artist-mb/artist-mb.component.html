@@ -1,0 +1,6 @@
+@if (!artist()) {
+	<app-loading />
+}
+@if (artist(); as artist) {
+	<app-mb-artist [mbArtistID]="artist.mbArtistID" [name]="artist.name" />
+}

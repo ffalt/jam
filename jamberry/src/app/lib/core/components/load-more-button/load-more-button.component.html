@@ -1,0 +1,9 @@
+@if (hasMore()) {
+	<div class="more">
+		@if (loading()) {
+			<div><app-icon-spin class="icon-spin" /></div>
+		} @else {
+			<div i18n tabindex="0" (click)="more()" (keydown.enter)="more()">Show {{ take() }} More</div>
+		}
+	</div>
+}

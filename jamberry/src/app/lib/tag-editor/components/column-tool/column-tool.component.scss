@@ -1,0 +1,78 @@
+@use "_scss/variables";
+@use "_scss/mixins/close";
+@use "_scss/mixins/input";
+
+:host {
+	.column-tools {
+		border: 1px solid var(--control-border);
+		padding-bottom: variables.$padding;
+
+		.close-panel {
+			float: right;
+			display: inline-block;
+			overflow: hidden;
+			width: 2.5rem;
+			height: 2.5rem;
+			max-width: 2.5rem;
+			max-height: 2.5rem;
+			margin-top: -(variables.$padding);
+
+			@include close.close;
+		}
+
+		.column-tools-title {
+			padding-top: variables.$padding;
+			padding-left: variables.$padding;
+			padding-right: variables.$padding;
+
+			span {
+				color: var(--on-control-active);
+			}
+		}
+
+		@include input.input-box;
+
+		.input-box {
+			display: flex;
+		}
+
+		.button-insert-at {
+			display: inline-flex;
+
+			input {
+				width: 50px;
+				border-color: var(--on-control-ambient);
+			}
+		}
+
+		app-tag-editor-autocomplete {
+			flex: 1;
+			border: none;
+			min-height: 24px;
+			height: 24px;
+			background-color: var(--input);
+			color: var(--on-input);
+		}
+
+		select {
+			flex: 1;
+			border: none;
+			height: 24px;
+			background-color: var(--input);
+			color: var(--on-input);
+			width: 100%;
+		}
+
+		.column-tool-content {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.column-tool {
+			padding: variables.$padding variables.$padding 0;
+			font-size: 0.8em;
+			align-self: center;
+		}
+
+	}
+}

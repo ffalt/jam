@@ -1,0 +1,20 @@
+@use "_scss/variables";
+
+:host {
+	.section-title {
+		margin-top: variables.$margin;
+	}
+
+	.section {
+		text-transform: uppercase;
+		letter-spacing: 1.25px;
+		font-size: variables.$x-small;
+		padding-bottom: variables.$padding;
+		margin-top: variables.$margin;
+	}
+
+	.section-content {
+		display: flex;
+		flex-flow: row wrap;
+	}
+}

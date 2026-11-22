@@ -1,0 +1,5 @@
+<span class="star-rating">
+  @for (n of range; track $index) {
+		<i (click)="mark($index)"><ng-container [ngComponentOutlet]="n" /></i>
+	}
+</span>

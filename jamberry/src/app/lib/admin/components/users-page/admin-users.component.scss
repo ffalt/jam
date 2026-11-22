@@ -1,0 +1,21 @@
+@use "_scss/mixins/view";
+@use "_scss/mixins/button";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	display: block;
+
+	.users {
+		@include view.view-host;
+
+		.actions {
+			@include button.header-actions-buttons;
+		}
+
+		.content {
+			@include view.view-content;
+		}
+	}
+}

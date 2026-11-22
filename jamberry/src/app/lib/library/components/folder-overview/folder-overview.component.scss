@@ -1,0 +1,34 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+
+:host {
+	@include view.view-content;
+
+	.breadcrumb {
+		list-style: none;
+		padding: 0;
+
+		li {
+			display: inline;
+			font-size: variables.$small;
+		}
+
+		li + li::before {
+			padding: 8px;
+			color: var(--on-background);
+			content: "/\00a0";
+		}
+
+		a {
+			color: var(--on-background);
+
+			&:hover {
+				color: var(--on-background-hover);
+			}
+		}
+	}
+
+	.info {
+		width: 100%;
+	}
+}

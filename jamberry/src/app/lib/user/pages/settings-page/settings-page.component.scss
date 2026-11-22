@@ -1,0 +1,44 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+
+:host {
+	.settings {
+		@include view.view-host;
+
+		.content {
+			@include view.view-content;
+
+			padding: variables.$padding variables.$padding variables.$padding-xl;
+
+			label {
+				display: block;
+				padding-bottom: variables.$padding;
+				color: var(--on-background);
+
+				input[type="checkbox"] {
+					margin-top: -1px;
+					display: inline-block;
+					vertical-align: middle;
+					margin-right: variables.$margin-sm;
+				}
+			}
+
+			fieldset {
+				margin-bottom: variables.$margin;
+				width: auto;
+				display: inline;
+			}
+
+			label.select {
+				width: auto;
+				padding-top: 4px;
+				padding-bottom: 4px;
+
+				input {
+					margin-right: variables.$margin-sm;
+				}
+			}
+
+		}
+	}
+}

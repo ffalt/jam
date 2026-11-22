@@ -1,0 +1,76 @@
+import { Component, type ComponentRef, inject, type OnInit, viewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { isEscapeKey } from '@utils/keys';
+import { DialogOverlayRef } from './dialog-overlay-ref.class';
+import { DIALOG_OVERLAY_DIALOG_CONFIG } from './dialog-overlay.tokens';
+import type { DialogOverlay, DialogOverlayDialogConfig } from './dialog-overlay.types';
+
+@Component({
+	selector: 'app-dialog-overlay',
+	templateUrl: './dialog-overlay.component.html',
+	styleUrls: ['./dialog-overlay.component.scss'],
+	// eslint-disable-next-line @angular-eslint/use-component-view-encapsulation
+	encapsulation: ViewEncapsulation.None,
+	host: {
+		'(document:keydown)': 'handleKeydown($event)'
+	}
+})
+export class DialogOverlayComponent implements OnInit {
+	readonly dialogRef = inject(DialogOverlayRef);
+	readonly config = inject<DialogOverlayDialogConfig<any>>(DIALOG_OVERLAY_DIALOG_CONFIG);
+	isBusy: boolean = false;
+	childComponentRef?: ComponentRef<DialogOverlay<any>>;
+	private readonly dynamicComponentTarget = viewChild('overlayDialogBody', { read: ViewContainerRef });
+
+	handleKeydown(event: KeyboardEvent): void {
+		if (isEscapeKey(event)) {
+			this.dialogRef.close();
+		}
+	}
+
+	ngOnInit(): void {
+		const dynamicComponentTarget = this.dynamicComponentTarget();
+		if (!(dynamicComponentTarget && this.config.childComponent)) {
+			return;
+		}
+
+		this.childComponentRef = dynamicComponentTarget.createComponent(this.config.childComponent);
+		this.childComponentRef.instance.dialogInit(this.dialogRef, this.config);
+	}
+
+	getResult(): boolean | undefined {
+		if (this.childComponentRef?.instance.dialogResult) {
+			return this.childComponentRef.instance.dialogResult();
+		}
+		return;
+	}
+
+	ok(): void {
+		if (this.isBusy || !this.config.onOkBtn) {
+			return;
+		}
+		this.isBusy = true;
+		this.config.onOkBtn().then(() => {
+			this.isBusy = false;
+			this.dialogRef.close();
+		}).catch(() => {
+			this.isBusy = false;
+		});
+	}
+
+	cancel(): void {
+		if (this.isBusy || !this.config.onCancelBtn) {
+			return;
+		}
+		this.isBusy = true;
+		this.config.onCancelBtn().then(() => {
+			this.isBusy = false;
+			this.dialogRef.close();
+		}).catch(() => {
+			this.isBusy = false;
+		});
+	}
+
+	close(): void {
+		this.dialogRef.close();
+	}
+}

@@ -1,0 +1,8 @@
+@use "_scss/mixins/table";
+
+:host {
+	.track {
+		@include table.track-table-data-row;
+		@include table.track-table-row;
+	}
+}

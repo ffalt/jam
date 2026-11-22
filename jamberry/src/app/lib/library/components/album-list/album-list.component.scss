@@ -1,0 +1,22 @@
+@use "_scss/variables";
+@use "_scss/mixins/table";
+
+:host {
+	width: 100%;
+
+	.albums {
+		@include table.album-table;
+
+		.heading, .album {
+			@include table.album-table-row;
+		}
+
+		.heading {
+			@include table.album-table-header-row;
+		}
+
+		.album {
+			@include table.album-table-data-row;
+		}
+	}
+}

@@ -1,0 +1,32 @@
+import { Component, input } from '@angular/core';
+import type { AutocompleteControl, AutocompleteOption } from '@modules/autocomplete/autocomplete.types';
+
+@Component({
+	selector: 'app-autocomplete-option',
+	template: '<ng-content />',
+	styleUrls: ['./option.component.scss'],
+	host: {
+		'[class.active]': 'getActive',
+		'(mousedown)': 'mouseDownEvent($event)'
+	}
+})
+export class OptionComponent {
+	readonly option = input<AutocompleteOption<any>>();
+	readonly control = input<AutocompleteControl<any>>();
+
+	get getActive(): boolean {
+		const control = this.control();
+		return control ? control.options[control.activeIndex] === this.option() : false;
+	}
+
+	mouseDownEvent(event: MouseEvent): void {
+		const control = this.control();
+		const option = this.option();
+		if (!(control && option)) {
+			return;
+		}
+
+		control.selectOption(option);
+		event.stopPropagation();
+	}
+}

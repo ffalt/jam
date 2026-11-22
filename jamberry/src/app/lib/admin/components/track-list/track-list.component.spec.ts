@@ -1,0 +1,26 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { TrackListComponent } from './track-list.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('TrackListComponent', () => {
+	let component: TrackListComponent;
+	let fixture: ComponentFixture<TrackListComponent>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [TrackListComponent],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(TrackListComponent);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

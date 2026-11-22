@@ -1,0 +1,12 @@
+@use "_scss/variables";
+
+:host {
+	.section-title {
+		text-transform: uppercase;
+		letter-spacing: 1.25px;
+		font-size: variables.$x-small * 1.2;
+		margin-top: variables.$margin;
+		margin-bottom: variables.$margin-sm;
+		color: var(--on-control-ambient);
+	}
+}

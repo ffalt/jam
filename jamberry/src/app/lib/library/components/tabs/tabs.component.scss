@@ -1,0 +1,7 @@
+@use "_scss/mixins/tabs";
+
+:host {
+	.tabs {
+		@include tabs.tabs;
+	}
+}

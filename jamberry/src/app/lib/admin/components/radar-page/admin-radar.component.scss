@@ -1,0 +1,62 @@
+@use "_scss/variables";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	display: block;
+
+	.radar {
+		display: flex;
+		flex-direction: column;
+
+		.content {
+			padding: variables.$padding;
+		}
+
+		.buttons {
+			min-width: 130px;
+			display: inline-block;
+
+			> button {
+				margin-right: variables.$margin-xs;
+			}
+		}
+
+		.current {
+			padding-top: variables.$padding;
+			padding-bottom: variables.$padding;
+			border-bottom: 1px solid var(--background-border);
+
+			span {
+				margin-right: variables.$padding;
+			}
+		}
+
+		.track {
+			border-bottom: 1px solid var(--background-border);
+
+			.meta {
+				padding-top: variables.$padding;
+				padding-bottom: variables.$padding;
+			}
+
+			.track-health {
+				padding-left: variables.$padding;
+			}
+		}
+
+		@media (max-width: variables.$break-pad) {
+			.current span {
+				display: block;
+			}
+
+			.track {
+				.track-health {
+					padding-left: 0;
+				}
+			}
+
+		}
+	}
+}

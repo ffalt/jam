@@ -1,0 +1,141 @@
+import { Component, DestroyRef, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
+import { MatchApplyComponent } from '../match-apply/match-apply.component';
+import { NotifyService } from '@core/services/notify/notify.service';
+import { type Jam, JamService } from '@jam';
+import type { MatchRelease, MatchReleaseGroup } from '../../model/release-matching.helper';
+import { toID3v24 } from '../../model/release-matching.id3.helper';
+import { Matcher, RunType } from './matcher';
+import { TagEditorAutocompleteComponent } from '../autocomplete/tag-editor-autocomplete.component';
+import { MatchFileListComponent } from '../match-file-list/match-file-list.component';
+import { MatchResultsComponent } from '../match-results/match-results.component';
+import { ContextMenuModule } from '@modules/ngx-contextmenu/lib/ngx-contextmenu.module';
+import type { ContextMenuComponent } from '@modules/ngx-contextmenu/lib/contextmenu.component';
+import { ContextMenuService } from '@modules/ngx-contextmenu/lib/contextmenu.service';
+import { IconLeftComponent } from '@core/components/icons/icon-left.component';
+import { IconRightComponent } from '@core/components/icons/icon-right.component';
+import { IconSpinComponent } from '@core/components/icons/icon-spin.component';
+
+export interface ReleaseDataMatching {
+	track: Jam.Track;
+	rawTag?: Jam.MediaTagRaw;
+}
+
+export interface ReleaseMatching {
+	folder: Jam.Folder;
+	matchings: Array<ReleaseDataMatching>;
+
+	apply(): void;
+
+	close?(): void;
+}
+
+@Component({
+	selector: 'app-match-release',
+	templateUrl: './match-release.component.html',
+	styleUrls: ['./match-release.component.scss'],
+	host: {
+		'[class.right-active]': 'rightActive()'
+	},
+	imports: [ContextMenuModule, IconLeftComponent, IconRightComponent, IconSpinComponent, MatchApplyComponent, MatchFileListComponent, MatchResultsComponent, TagEditorAutocompleteComponent]
+})
+export class MatchReleaseComponent {
+	readonly data = input<ReleaseMatching>();
+	readonly RunType = RunType;
+	readonly rightActive = signal(true);
+	readonly matcher: Matcher;
+	readonly current = signal<{ group: MatchReleaseGroup; release: MatchRelease } | undefined>(undefined);
+	private readonly matchApply = viewChild.required(MatchApplyComponent);
+	private readonly actionMenu = viewChild<ContextMenuComponent>('actionMenu');
+	private readonly lifeRef = inject(DestroyRef);
+	private readonly jam = inject(JamService);
+	private readonly notify = inject(NotifyService);
+	private readonly contextMenuService = inject(ContextMenuService);
+
+	constructor() {
+		this.matcher = new Matcher(this.jam, this.notify);
+		effect(() => {
+			const data = this.data();
+			if (data) {
+				untracked(() => {
+					this.matcher.prepare(
+						data.matchings.map(m => ({ track: m.track })),
+						data.folder
+					);
+				});
+			} else {
+				untracked(() => {
+					this.matcher.abort();
+				});
+			}
+		});
+		this.lifeRef.onDestroy(() => {
+			this.matcher.abort();
+		});
+	}
+
+	apply(): void {
+		const genres = this.matchApply().getGenres();
+		for (const match of this.matcher.matchings()) {
+			match.genres = genres;
+		}
+		const data = this.data();
+		if (!data) {
+			return;
+		}
+		const images = this.matchApply().getCoverArtImages();
+		for (const result of data.matchings) {
+			const match = this.matcher.matchings().find(m => m.track.id === result.track.id);
+			result.rawTag = match ? toID3v24(match, genres, images) : undefined;
+		}
+		data.apply();
+		if (data.close) {
+			data.close();
+		}
+	}
+
+	chooseRelease({ group, release }: { group: MatchReleaseGroup; release: MatchRelease }): void {
+		this.stopApply();
+		this.current.set({ group, release });
+		this.matchApply().coverArtSearch.set({ mbReleaseID: release.mbRelease.id, mbReleaseGroupID: group.mbGroup.id });
+		this.matcher.apply(group, release);
+		const data = this.data();
+		if (!data) {
+			return;
+		}
+		this.matchApply().loadGenres(data.matchings, group, release)
+			.catch((error: unknown) => {
+				this.notify.error(error);
+			});
+	}
+
+	stopApply(): void {
+		this.current.set(undefined);
+		this.matchApply().genres.set(undefined);
+		this.matchApply().coverArtSearch.set(undefined);
+		this.matcher.stopApply();
+	}
+
+	loadLyricsRequest(): void {
+		const current = this.current();
+		if (current) {
+			this.matcher.loadLyrics(current.group.currentRelease);
+		}
+	}
+
+	loadMoodsRequest(): void {
+		const current = this.current();
+		if (current) {
+			this.matcher.loadMoods(current.group.currentRelease);
+		}
+	}
+
+	onContextMenu($event: Event) {
+		this.contextMenuService.show.next({
+			contextMenu: this.actionMenu(),
+			event: $event,
+			item: undefined
+		});
+		$event.preventDefault();
+		$event.stopPropagation();
+	}
+}

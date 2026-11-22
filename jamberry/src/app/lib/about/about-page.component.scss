@@ -1,0 +1,27 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+@use "_scss/mixins/list";
+
+:host {
+	.about {
+		@include view.view-host;
+
+		app-view-header-slim {
+			padding-left: variables.$padding-xl;
+			padding-right: variables.$padding-xl;
+		}
+
+		.content {
+			@include view.view-content;
+
+			padding: 0 variables.$padding-xl variables.$padding-xl;
+
+			@media (max-width: variables.$break-phone) {
+				padding-left: variables.$padding;
+				padding-right: variables.$padding;
+			}
+
+			@include list.key-value-list;
+		}
+	}
+}

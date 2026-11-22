@@ -1,0 +1,443 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [0.6.27](https://github.com/ffalt/jamberry/compare/v0.6.26...v0.6.27) (2026-11-22)
+
+### Features
+
+* **lyrics:** use sidecars and metadata lyrics search for missing lyrics lookup ([ebddb08](https://github.com/ffalt/jamberry/commit/ebddb084d36bd1af0695edb0cee41975dda1367c))
+
+### Bug Fixes
+
+* **admin:** prevent folder health display update loop ([66bda9b](https://github.com/ffalt/jamberry/commit/66bda9b345100c96016add9590ad0f7290d95f2a))
+
+## [0.6.26](https://github.com/ffalt/jamberry/compare/v0.6.25...v0.6.26) (2026-11-21)
+
+### Bug Fixes
+
+* **admin:** prevent track health display update loop ([675c73b](https://github.com/ffalt/jamberry/commit/675c73b8fc5ce64d03fefac51f3fa4dbeedbbebf))
+
+## [0.6.25](https://github.com/ffalt/jamberry/compare/v0.6.24...v0.6.25) (2026-11-21)
+
+### Features
+
+* **admin:** support adding synced lyrics in the the tag editor and release matching ([3134a4b](https://github.com/ffalt/jamberry/commit/3134a4b2f30a25c88e409750a90d6c4a15742152))
+* **lyrics:** add synced lyrics health hint ([16ee002](https://github.com/ffalt/jamberry/commit/16ee0025db4efb4a352668951494598998abc1b0))
+
+## [0.6.24](https://github.com/ffalt/jamberry/compare/v0.6.23...v0.6.24) (2026-11-20)
+
+### Features
+
+* **lyrics:** use parsed synced lyrics from API ([3b8f164](https://github.com/ffalt/jamberry/commit/3b8f1646ef5195427d2fd2843b7f8c277c0a0be1))
+* **player:** rework the bottom play bar ([384f6af](https://github.com/ffalt/jamberry/commit/384f6afabcec2862a4b2d8f2c15f64e55bd58ac2))
+
+## [0.6.23](https://github.com/ffalt/jamberry/compare/v0.6.22...v0.6.23) (2026-11-19)
+
+### Features
+
+* **player:** add now playing view ([755f2cb](https://github.com/ffalt/jamberry/commit/755f2cb541acb0bed09abbe8a9ec1693924d82e9))
+
+## [0.6.22](https://github.com/ffalt/jamberry/compare/v0.6.21...v0.6.22) (2026-11-18)
+
+### Features
+
+* **admin:** add folder rescan and meta refresh actions ([ec361ef](https://github.com/ffalt/jamberry/commit/ec361ef22178e3e1f3ac63ce2ad927460a1381d4))
+* **track:** show synced lyrics with time prefixes, seek on click in the "currently playing" view ([c00cedf](https://github.com/ffalt/jamberry/commit/c00cedf8becd25db0dd043e8be6ef6ef0ef621e2))
+
+## [0.6.21](https://github.com/ffalt/jamberry/compare/v0.6.20...v0.6.21) (2026-11-13)
+
+### Bug Fixes
+
+* **admin:** add missing DialogService ([fffd769](https://github.com/ffalt/jamberry/commit/fffd769b49989cb9c41c8e76df8205ad8a9bd1af))
+
+## [0.6.20](https://github.com/ffalt/jamberry/compare/v0.6.19...v0.6.20) (2026-11-05)
+
+## [0.6.19](https://github.com/ffalt/jamberry/compare/v0.6.18...v0.6.19) (2026-10-24)
+
+## [0.6.18](https://github.com/ffalt/jamberry/compare/v0.6.17...v0.6.18) (2026-10-15)
+
+### Bug Fixes
+
+* **admin-section:** adjust signals ([8fafa6b](https://github.com/ffalt/jamberry/commit/8fafa6b487074c5e4de0d37369b796dce66d5965))
+* **admin:** improve spacing ([2881dde](https://github.com/ffalt/jamberry/commit/2881ddeee4b192cc4da1536bd80a8b682b3e34da))
+* **matching:** adjust signals ([0dc3309](https://github.com/ffalt/jamberry/commit/0dc330983e56e52322f441426979455f92c2dae6))
+
+## [0.6.17](https://github.com/ffalt/jamberry/compare/v0.6.16...v0.6.17) (2026-08-06)
+
+### Bug Fixes
+
+* **formatters:** formatFileSize misreports exact power-of-1024 sizes ([9f5d318](https://github.com/ffalt/jamberry/commit/9f5d3186379d70a9666b4529246990540ba472e7))
+* **menu:** add cleanup logic for context menu visibility checks ([478372f](https://github.com/ffalt/jamberry/commit/478372face9ac6b23c647b626bd22da1b0433d1c))
+* **playlist:** update removeFromPlaylist to handle asynchronous entry retrieval ([bb6d994](https://github.com/ffalt/jamberry/commit/bb6d9943fe77795c53250894a748eab62eccdcc1))
+* **queue:** adjust currentIndex handling when removing track ([9c7b309](https://github.com/ffalt/jamberry/commit/9c7b3097b27538bc7d908672b846d29b450a4b19))
+* **queue:** handle currentIndex decrement with repeatQueue condition ([8934305](https://github.com/ffalt/jamberry/commit/8934305995b04fc0957e8e335217217ca1cd8ac5))
+* **service:** better error handling in HTTP response ([5fc6979](https://github.com/ffalt/jamberry/commit/5fc6979bbc76ae35363136aede080b2a122c5e6b))
+* **service:** remove index entry cache on error ([0978c43](https://github.com/ffalt/jamberry/commit/0978c43d382491b9722b24397454d71feda8168d))
+* **settings:** stored settings overwrite defaults with undefined ([d20f9a0](https://github.com/ffalt/jamberry/commit/d20f9a0cbdd3c8634233a95326258d198122c0bf))
+* **soundmanager:** improve loading percentage calculation for soundObject ([05c1f55](https://github.com/ffalt/jamberry/commit/05c1f55758946cc0d5688fe746a4120ef1c07338))
+* **title:** update title refresh logic to account for currentTrack presence ([f09566c](https://github.com/ffalt/jamberry/commit/f09566c218dffb432f9a0b19fcad530a9edfe747))
+## [0.6.16](https://github.com/ffalt/jamberry/compare/v0.6.15...v0.6.16) (2026-07-05)
+
+## [0.6.15](https://github.com/ffalt/jamberry/compare/v0.6.14...v0.6.15) (2026-07-04)
+
+
+### Features
+
+* **angular:** go zoneless ([940b124](https://github.com/ffalt/jamberry/commit/940b124c9797bab6ab89b6192be42d5a4614b570))
+* **landscape:** replace loading text with loading component in landscape view ([771ebd2](https://github.com/ffalt/jamberry/commit/771ebd2fe16fefdb6aae4e5537c2e14fd480099e))
+* **musicbraint:** try load album and artist without musicbrainz IDs ([2dee8f5](https://github.com/ffalt/jamberry/commit/2dee8f5394359c1ec1f671ff73432e19273bc056))
+
+
+### Bug Fixes
+
+* **landscape:** adjust height for landscape view on smaller screens ([ab62f8c](https://github.com/ffalt/jamberry/commit/ab62f8c03267cf25b1f035ba8bcfe41df3353dfe))
+* **player:** replace unmute with toggleMute method ([f58a3fe](https://github.com/ffalt/jamberry/commit/f58a3fe034f1654799974ba0f9aff19eb5894c56))
+
+## [0.6.14](https://github.com/ffalt/jamberry/compare/v0.6.13...v0.6.14) (2026-05-31)
+
+
+### Features
+
+* **discogs:** add album discogs component ([dc33459](https://github.com/ffalt/jamberry/commit/dc33459180a1e1abe64d7c0455e6ddd350d2a0bf))
+* **discogs:** add artist metadata component ([d4f974e](https://github.com/ffalt/jamberry/commit/d4f974e12b2be344832d1f11b509d274be1018e1))
+* **discogs:** add Discogs icon component ([a1330bc](https://github.com/ffalt/jamberry/commit/a1330bcf10183492c2bab9dacb6170cba4a567c4))
+* **discogs:** add folder metadata component ([d918e90](https://github.com/ffalt/jamberry/commit/d918e90540a73d150fe551847edab49d8ff8484a))
+* **discogs:** add folder metadata component ([761f8e6](https://github.com/ffalt/jamberry/commit/761f8e61a40fa8958c45e6f5286f9d1166bae37d))
+* **discogs:** show metadata for album ([b2f3ff2](https://github.com/ffalt/jamberry/commit/b2f3ff221eede08c1edd1503480eb211143d12ab))
+* **discogs:** update Discogs icon component and enhance album/artist links ([c7c27f7](https://github.com/ffalt/jamberry/commit/c7c27f726ca5e0c37669389d44e36b5fd9c14f54))
+* **header-tabs:** simplify tab rendering and improve router link handling ([1fac586](https://github.com/ffalt/jamberry/commit/1fac586636ca059ddc7d705e173cdbd03d4a5941))
+* **landscape:** refactor constructor to include reactive effects for state updates ([062ebef](https://github.com/ffalt/jamberry/commit/062ebef36f85ecab52c4c740e08c4a0252191e78))
+* **sidebar:** add toggle functionality for sidebar visibility ([a16b45d](https://github.com/ffalt/jamberry/commit/a16b45db3ac350b1a061d4901ef76e3018abea56))
+
+## [0.6.13](https://github.com/ffalt/jamberry/compare/v0.6.12...v0.6.13) (2026-05-30)
+
+
+### Bug Fixes
+
+* **folder-artwork-search-image:** update image source to use direct cover image URL ([e848f5a](https://github.com/ffalt/jamberry/commit/e848f5ac8783ecefec8f2fa6e3ad0fed783e9ee1))
+
+## [0.6.12](https://github.com/ffalt/jamberry/compare/v0.6.11...v0.6.12) (2026-05-30)
+
+
+### Features
+
+* **admin/upload:** enhance image upload interface ([8291736](https://github.com/ffalt/jamberry/commit/8291736a0423cd007683fd2ececdecabef597876))
+* **discogs-api:** add Discogs API interfaces and search methods ([0655a9c](https://github.com/ffalt/jamberry/commit/0655a9cfcd8ce2a7120f827bbe375e15ec564bac))
+* **errors:** handle rate limit exceeded errors with retry duration message ([212bdd6](https://github.com/ffalt/jamberry/commit/212bdd6107eb27a62f1fadb9235b42129caa28f4))
+* **folder-artwork-search:** implement multi-source artwork search with Discogs ([b12055a](https://github.com/ffalt/jamberry/commit/b12055adf4208146ea7c7e468c7961a6e4893a1d))
+
+
+### Bug Fixes
+
+* **artwork-list:** add keyboard accessibility for artwork edit action ([8af872d](https://github.com/ffalt/jamberry/commit/8af872df28957c48afe6643abdea8ba02045e3ed))
+* **security:** update media-src directive and set response content type ([d2152c2](https://github.com/ffalt/jamberry/commit/d2152c20f8d5ad9aeed2d6b5ae5189f1aa2bf4c1))
+
+## [0.6.11](https://github.com/ffalt/jamberry/compare/v0.6.10...v0.6.11) (2026-05-29)
+
+
+### Features
+
+* **folder-overview:** add track count in subtree and improve UI formatting ([bc7305f](https://github.com/ffalt/jamberry/commit/bc7305fe0b841317eb555e9bd2b8dee2d1ed2220))
+* **folder-overview:** register refresh callback for dialog overlays ([767886f](https://github.com/ffalt/jamberry/commit/767886fea31008de23ca124267ccc0dea697618c))
+
+
+### Bug Fixes
+
+* **folder-tree:** update node properties to reflect folder count and color ([e3205af](https://github.com/ffalt/jamberry/commit/e3205af14403a7f2be0ff874b815a796e5eee009))
+
+## [0.6.10](https://github.com/ffalt/jamberry/compare/v0.6.9...v0.6.10) (2026-05-29)
+
+
+### Bug Fixes
+
+* **folder-health:** scan the subtree, not only the children ([8dbcea3](https://github.com/ffalt/jamberry/commit/8dbcea32ec7314961b06733544e7144a6cc34da4))
+* **landscape:** remove artist labels, stretch grid ([8a72ca9](https://github.com/ffalt/jamberry/commit/8a72ca98b39695b12fbe6bede45e3f3e5f1be806))
+* **landscape:** static font size & nudge labels ([62086c3](https://github.com/ffalt/jamberry/commit/62086c33b79218b5a751f343f15662ddfa566292))
+
+## [0.6.9](https://github.com/ffalt/jamberry/compare/v0.6.8...v0.6.9) (2026-05-27)
+
+
+### Features
+
+* **landscape:** add landscape viz ([2038aa6](https://github.com/ffalt/jamberry/commit/2038aa6f223ec5de9c86a7b8f9ecf26af1faf919))
+
+## [0.6.8](https://github.com/ffalt/jamberry/compare/v0.6.7...v0.6.8) (2026-05-10)
+
+
+### Features
+
+* **tag-editor:** add support for editing Music CD Identifier frames ([d1c6734](https://github.com/ffalt/jamberry/commit/d1c67342d006beac9881a629a86256dd9e8aa867))
+* **tag-editor:** more prominent save button ([a55733f](https://github.com/ffalt/jamberry/commit/a55733fdc8130ba5a906d8b1a86f2d6e7f4ef148))
+
+
+### Bug Fixes
+
+* **tag-editor:** improve frame handling and UI enhancements ([3be4b37](https://github.com/ffalt/jamberry/commit/3be4b37627b1ad9f4373637d348c765cfa21b880))
+
+## [0.6.7](https://github.com/ffalt/jamberry/compare/v0.6.6...v0.6.7) (2026-05-08)
+
+
+### Features
+
+* **tag-editor:** add support for new ID3v2 frame types ([bcc5455](https://github.com/ffalt/jamberry/commit/bcc545512be97a5f0856432bf52b985b26c4630f))
+
+
+### Bug Fixes
+
+* **column-tool:** add spacing after "Current Column:" label ([11d1697](https://github.com/ffalt/jamberry/commit/11d16973b7a139bf3eb2dba194bd9428544d6c6a))
+* **tag-editor:** handle search errors in match-coverart component ([c70ddd2](https://github.com/ffalt/jamberry/commit/c70ddd21a1dafa494eea1e60fb5597dc014e8e80))
+
+## [0.6.6](https://github.com/ffalt/jamberry/compare/v0.6.5...v0.6.6) (2026-05-07)
+
+## [0.6.5](https://github.com/ffalt/jamberry/compare/v0.6.4...v0.6.5) (2026-04-19)
+
+
+### Features
+
+* **soundmanager:** use onready method to support callback and scope ([3732975](https://github.com/ffalt/jamberry/commit/3732975aa5da59af82962645544f96f3f155b670))
+
+## [0.6.4](https://github.com/ffalt/jamberry/compare/v0.6.3...v0.6.4) (2026-04-11)
+
+
+### Features
+
+* **base:** enhance menu UI with improved layout and styling ([c2a84f7](https://github.com/ffalt/jamberry/commit/c2a84f70b49a9690176e5565dee6a6d1f9a86f0e))
+* **cards:** enhance card image styles with improved hover effects and transitions ([16fdf70](https://github.com/ffalt/jamberry/commit/16fdf709dc4dda535c4c6a8b77b43219986214d9))
+* **login:** enhance login UI with improved layout and styling ([437e897](https://github.com/ffalt/jamberry/commit/437e8977a37a35e80eba86cb492625cdb9aee81a))
+* **login:** improve login component styles and add logged-in class for better layout ([3c9463d](https://github.com/ffalt/jamberry/commit/3c9463d02fe3574ea9c2359bd1a76e1e675980ed))
+* **styles:** update border radius and input styles for improved UI consistency ([b4d44fc](https://github.com/ffalt/jamberry/commit/b4d44fc44d0bd606e12f3bf1978ce483cd0908eb))
+
+## [0.6.3](https://github.com/ffalt/jamberry/compare/v0.6.2...v0.6.3) (2026-03-01)
+
+
+### Features
+
+* **csp:** add Content Security Policy meta tag to enhance security ([33ed404](https://github.com/ffalt/jamberry/commit/33ed40440d7488f9bbbefe15ac17b1452c5c7c7e))
+* **queue:** better shuffle ([6e6d4ce](https://github.com/ffalt/jamberry/commit/6e6d4cea933ac00f030382bf0e5ac8e38c19532c))
+
+
+### Bug Fixes
+
+* **artwork-edit:** validate blob URLs before trusting image cropper output ([874f983](https://github.com/ffalt/jamberry/commit/874f98356ce067611a1ee595fe1053e43b76b78c))
+* **auth,base:** remove password storage, simplify error handling and request building ([7b10daf](https://github.com/ffalt/jamberry/commit/7b10dafdecd43b1036dac531231ecf27c63b6d33))
+* **components:** implement proper cleanup in ngOnDestroy for multiple components ([476c40b](https://github.com/ffalt/jamberry/commit/476c40b1e2c2af513dabbe40b571e7a785b01b2f))
+* **contextmenu:** ensure proper overlay management and cleanup ([d67913f](https://github.com/ffalt/jamberry/commit/d67913fcee9fc43a487e4ca3db8d4144ece5a08f))
+* **dependencies:** update @angular/cdk to 21.1.6 and other Angular packages to 21.1.5 ([3b711d4](https://github.com/ffalt/jamberry/commit/3b711d460118f1d4aa0fce65a5bd64bcf5e03c43))
+* **dependencies:** update Angular packages and related dependencies to version 21.2.0 ([2296a89](https://github.com/ffalt/jamberry/commit/2296a89c091c1fc69aecc172af2b0f046108f137))
+* **hotkeys:** return hotkey after removing from pausedHotkeys ([3c8a8a7](https://github.com/ffalt/jamberry/commit/3c8a8a797a44f75c14a35b944c59c0ff4b30b4b1))
+* **login:** add credential validation for server URL, username, and password ([9800491](https://github.com/ffalt/jamberry/commit/98004912eb61f5ca7ef10922ddcfca53ef9ed94a))
+* **mediasession:** add error handling for MediaMetadata assignment ([4de1822](https://github.com/ffalt/jamberry/commit/4de1822ff2f5b8a1fc69f7e83149558f4b303b80))
+* **mediasession:** use mediaSession instance for setPositionState method ([21c66c0](https://github.com/ffalt/jamberry/commit/21c66c0b04a7bf407876c98854ce7d5079cb9fd5))
+* **player:** clear current media to prevent potential playback loops ([cdb3d45](https://github.com/ffalt/jamberry/commit/cdb3d45dac534e30703200cacff773ea18895c83))
+* **player:** improve song retrieval logic in togglePlayPause ([b63b34a](https://github.com/ffalt/jamberry/commit/b63b34a280cad2ba0af50d8bc1886128eacd4840))
+* **player:** prevent scrobbling when totalTime is zero ([cb62fe6](https://github.com/ffalt/jamberry/commit/cb62fe678656f2060d94238182218d434c8ba233))
+* **player:** prevent sound player initialization if media ID has changed ([a790d9d](https://github.com/ffalt/jamberry/commit/a790d9da4c61a0a70068058c39e151464ee8c4a6))
+* **player:** remove unnecessary setTimeout when loading from storage ([11b7dbb](https://github.com/ffalt/jamberry/commit/11b7dbb737392106e3bdcb0c3e2a72bf4473282b))
+* **player:** simplify play method logic for media playback control ([52ac875](https://github.com/ffalt/jamberry/commit/52ac875a672fd77974897dea98bcc95f24f17250))
+* **player:** stop position store on component destruction ([43ae578](https://github.com/ffalt/jamberry/commit/43ae578a5578c57fe35aba9a8762deaaf159e210))
+* **player:** throttle time updates during playback ([2be768a](https://github.com/ffalt/jamberry/commit/2be768ab61379caaea49ed8e0861873c702c780e))
+* **player:** unload last media only if the new track is different ([6ac9ff3](https://github.com/ffalt/jamberry/commit/6ac9ff331c63f597e1525207f6153fb97c3c002b))
+* **playlist:** correct track removal logic in removeFromPlaylist ([2320aef](https://github.com/ffalt/jamberry/commit/2320aef1238841a7518bca3cf49487223f1157f0))
+* **queue:** adjust currentIndex when removing a track from entries ([3f90d16](https://github.com/ffalt/jamberry/commit/3f90d1638398290229d60f0283172f9fa3e7f46a))
+* **queue:** optimize track addition with duplicate handling ([18febde](https://github.com/ffalt/jamberry/commit/18febde88abdb6a82476dda89f7a1d3076dafa39))
+* **queue:** reset current index after shuffling entries ([4646996](https://github.com/ffalt/jamberry/commit/4646996b45152a369a21007b6920a3f52970b0fb))
+* **tab-portal-outlet:** safely clear element content without using innerHTML ([f9acf24](https://github.com/ffalt/jamberry/commit/f9acf242e847f55f7b225c111a75815eb34b3735))
+* **tag-editor:** prevent actions during saving and improve navigation logic ([ea77d2f](https://github.com/ffalt/jamberry/commit/ea77d2f7a5add2ba9ab9a6c4303eefc75cc3acab))
+* **typing:** update parameter types from 'any' to 'unknown' in various services and interceptors ([322b430](https://github.com/ffalt/jamberry/commit/322b4304ae40fa4702c494607342177ab6172e2e))
+
+## [0.6.2](https://github.com/ffalt/jamberry/compare/v0.6.1...v0.6.2) (2026-01-15)
+
+
+### Features
+
+* **obj-card:** show jam object details in cards ([b772665](https://github.com/ffalt/jamberry/commit/b772665eb6ed3edceb7c94492b74cd3b843c798a))
+
+
+### Bug Fixes
+
+* **tag-editor:** iterate fields object instead of build object ([6e1dc9a](https://github.com/ffalt/jamberry/commit/6e1dc9afcb8e836f396bf6216092db9e9cd2ab13))
+* **tag-editor:** valid mass cell applying ([08c6089](https://github.com/ffalt/jamberry/commit/08c6089ba324a6ce7f7812109c783ea0c4ec2795))
+
+## [0.6.1](https://github.com/ffalt/jamberry/compare/v0.6.0...v0.6.1) (2025-12-07)
+
+## [0.6.0](https://github.com/ffalt/jamberry/compare/v0.4.27...v0.6.0) (2025-09-27)
+
+## [0.4.27](https://github.com/ffalt/jamberry/compare/v0.4.26...v0.4.27) (2025-07-01)
+
+* bump dependencies
+
+## [0.4.26](https://github.com/ffalt/jamberry/compare/v0.4.25...v0.4.26) (2025-06-06)
+
+* bump dependencies
+
+## [0.4.25](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.24...v0.4.25) (2024-10-07)
+
+### Features
+
+* **sessions:** create subsonic token ui ([44c8904](https://github.com-ffalt/ffalt/jamberry/commit/44c8904d51f2d842547fdcfd25c7614173f85d96))
+
+## [0.4.24](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.23...v0.4.24) (2024-09-13)
+
+* bump dependencies
+
+## [0.4.23](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.22...v0.4.23) (2024-03-23)
+
+### Features
+
+* **i18n:** mark text to extract ([a4799a4](https://github.com-ffalt/ffalt/jamberry/commit/a4799a46e49ac19f5e794d41de3afbe9dde694cf))
+* **i18n:** setup jest ([b3d25bd](https://github.com-ffalt/ffalt/jamberry/commit/b3d25bde078b63d46a070060da96d63e40f30e42))
+
+## [0.4.22](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.21...v0.4.22) (2023-05-19)
+
+### Bug Fixes
+
+* **sidebar:** browse entry active detection ([d14efa5](https://github.com-ffalt/ffalt/jamberry/commit/d14efa582be6bd35c25e56bd470f00c1c9b5b21f))
+* **theme:** refine themes ([68c52fd](https://github.com-ffalt/ffalt/jamberry/commit/68c52fd467602bd1c1cafe00b02d6b0abe7b132b))
+
+## [0.4.21](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.20...v0.4.21) (2023-05-19)
+
+### Features
+
+* **search:** click search icon to recall last search ([30d1a91](https://github.com-ffalt/ffalt/jamberry/commit/30d1a9124aca2dc3dbcf93f0d9051ed9aa96088d))
+* **search:** move header input to right ([605fc80](https://github.com-ffalt/ffalt/jamberry/commit/605fc803d1aee9f15b1355d08b6441ca775dfb1b))
+* **theme:** refine themes; rework dark theme; add catppuccin theme ([5912428](https://github.com-ffalt/ffalt/jamberry/commit/59124282f103a84f2d20aa30378e17001da7e8eb))
+* **themes:** add missing hover ([60d0cec](https://github.com-ffalt/ffalt/jamberry/commit/60d0cec864552f706b8f6a4bc52ff7df1881a76d))
+
+### [0.4.20](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.19...v0.4.20) (2023-01-14)
+
+### Bug Fixes
+
+* **services:** don't init class variable with constructor parameter ([b1338fb](https://github.com-ffalt/ffalt/jamberry/commit/b1338fbce7368f1d13949f17814ed069a49d2b78))
+
+### [0.4.19](https://github.com-ffalt/ffalt/jamberry/compare/v0.4.17...v0.4.19) (2023-01-13)
+
+chore(angular): bump angular to 15.1.0
+
+### [0.4.18](https://github.com/ffalt/jamberry/compare/v0.4.17...v0.4.18) (2022-12-13)
+
+### Features
+
+* **dev:** autofill debug login via proxy config.js ([9041578](https://github.com/ffalt/jamberry/commit/9041578eed09485e9fb2d420bdf981c65cac94ef))
+* **series:** enable grouping ([5cd35b8](https://github.com/ffalt/jamberry/commit/5cd35b82505422638f49980eb8c0f8fe7c14c597))
+
+### [0.4.17](https://github.com/ffalt/jamberry/compare/v0.4.16...v0.4.17) (2022-09-19)
+
+### Features
+
+* **series:** sort series extras into own group ([e20972a](https://github.com/ffalt/jamberry/commit/e20972ac8031e164c9357b70d5bd05c8a6d9c480))
+
+### Bug Fixes
+
+* **angular:** use unique component selector ([89b58cc](https://github.com/ffalt/jamberry/commit/89b58cc7fccb10cbaac102314c8e9f13ee9573e1))
+
+### [0.4.16](https://github.com/ffalt/jamberry/compare/v0.4.15...v0.4.16) (2022-03-26)
+
+### Bug Fixes
+
+* **playlist-dialog:** add missing entry styling ([f40c023](https://github.com/ffalt/jamberry/commit/f40c023784ad8891542d299596e1101140019b72))
+
+### [0.4.15](https://github.com/ffalt/jamberry/compare/v0.4.14...v0.4.15) (2021-11-14)
+
+### Features
+
+* **mediasession:** support new actions seek, stop, update position ([ada0060](https://github.com/ffalt/jamberry/commit/ada00603aa2ef8ae5bc7d069f817eb46b3cb7374))
+
+### [0.4.14](https://github.com/ffalt/jamberry/compare/v0.4.13...v0.4.14) (2021-10-29)
+
+### Bug Fixes
+
+* **theme:** remove debugging focus color ([cb431fe](https://github.com/ffalt/jamberry/commit/cb431fe8b3b7b42259df67e81c30ec5f0ce6bfc6))
+
+### [0.4.13](https://github.com/ffalt/jamberry/compare/v0.4.12...v0.4.13) (2021-10-13)
+
+### Features
+
+* **accessibility:** sidebar keyboard navigation ([02e0de0](https://github.com/ffalt/jamberry/commit/02e0de0b3778bd3be6f1a576833ac0d27ae7dbf9))
+* **accessibility:** start using semantic html, support tab & keyboard navigation ([ff3d5dd](https://github.com/ffalt/jamberry/commit/ff3d5dd662f1fc1de21298b6260f1d943ce2a292))
+* **accessibility:** support keyboard navigation in queue, menus, player, tabs ([2db2db6](https://github.com/ffalt/jamberry/commit/2db2db66a83dd10288e1928f13d5f7704eb17c47))
+* **accessibility:** support tab & keyboard navigation ([db358db](https://github.com/ffalt/jamberry/commit/db358dbaa45f5975d3bde2fe04bd94b0397b5fd8))
+* **accessibility:** tracklist & indexlist keyboard navigation ([baf8ec6](https://github.com/ffalt/jamberry/commit/baf8ec641870dac1fd4c91828fc114a9441c4f8d))
+* **accessibility:** using semantic html, support tab & keyboard navigation ([7bfb4b2](https://github.com/ffalt/jamberry/commit/7bfb4b221251c547c6ea43ec4b75fa273ce86c61))
+
+### [0.4.12](https://github.com/ffalt/jamberry/compare/v0.4.11...v0.4.12) (2021-08-06)
+
+### Features
+
+* **tag-editor:** add set-compilation cmd ([1b56941](https://github.com/ffalt/jamberry/commit/1b5694106d266db1d64842e1ebf2ca0ce990d8dd))
+
+### [0.4.11](https://github.com/ffalt/jamberry/compare/v0.4.10...v0.4.11) (2021-07-31)
+
+### Features
+
+* **images:** request images in webp format ([6bbb1e7](https://github.com/ffalt/jamberry/commit/6bbb1e7686ecf5d24ea60af75eda4f6d1202eb07))
+
+### [0.4.10](https://github.com///compare/v0.4.9...v0.4.10) (2021-07-31)
+
+### Bug Fixes
+
+* **overlays:** anchorElement for cdk-overlay context menu ([7058167](https://github.com///commit/7058167b963924db674d751097cefe54e3ee441c))
+
+### [0.4.9](https://github.com///compare/v0.4.8...v0.4.9) (2021-05-17)
+
+### Bug Fixes
+
+* **angular & csp:** inlined css uses inlined js, use external css ([c09c03d](https://github.com///commit/c09c03d782259829c39717426664be0d14bd8bdd))
+* **overlays:** cdk-overlay-pane must have pointer-events enabled ([25917d9](https://github.com///commit/25917d9ce9e3b8653ffc070700fbf7870ae9d5e7))
+
+### [0.4.8](https://github.com///compare/v0.4.7...v0.4.8) (2021-05-16)
+
+### [0.4.7](https://github.com///compare/v0.4.6...v0.4.7) (2021-04-04)
+
+### Bug Fixes
+
+* **player:** repeat track did not repeat track ([19a928c](https://github.com///commit/19a928c23021a5cedf111716fcd6a63b76dd0f02))
+
+### [0.4.6](https://github.com/ffalt/jamberry/compare/v0.4.5...v0.4.6) (2020-12-21)
+
+### Bug Fixes
+
+* **api:** if downloading binary via js, include content-type into return result ([ccb1f52](https://github.com/ffalt/jamberry/commit/ccb1f520083ba17727a035316a92a7d7932f7879))
+* **api:** if downloading binary via js, include content-type into return result ([da77a21](https://github.com/ffalt/jamberry/commit/da77a21c22e80ed353b8a3bacf1451e011415afa))
+
+### [0.4.5](https://github.com/ffalt/jamberry/compare/v0.4.4...v0.4.5) (2020-12-18)
+
+### Features
+
+* **meta:** use proxy coverartarchive request to avoid csp violations ([f3a5470](https://github.com/ffalt/jamberry/commit/f3a54708323cd2ac23f314c983c046587e4f91f6))
+
+### [0.4.4](https://github.com/ffalt/jamberry/compare/v0.4.3...v0.4.4) (2020-09-24)
+
+### Features
+
+* **podcast discover:** use jam api & gpodder scaled images ([a262a3f](https://github.com/ffalt/jamberry/commit/a262a3f4921747903af919f30623fbbb3c8c0b79))
+
+### Bug Fixes
+
+* **css:** invalid vertical-align value ([adcc46d](https://github.com/ffalt/jamberry/commit/adcc46d5274744786400a45df52be656667f3071))
+
+### [0.4.3](https://github.com/ffalt/jamberry/compare/v0.4.2...v0.4.3) (2020-09-23)
+
+### Bug Fixes
+
+* **mediasession:** extending global MediaMetaData obj no longer works, just declare it where it's used ([b3362ee](https://github.com/ffalt/jamberry/commit/b3362eecf4fd978b224c3b81241e593f71e50f1c))
+
+### [0.4.2](https://github.com/ffalt/jamberry/compare/v0.4.0...v0.4.2) (2020-09-22)
+
+### Features
+
+* **admin:** refresh root meta cmd ([afe64a2](https://github.com/ffalt/jamberry/commit/afe64a2bc893c7208608685d9367c205a47ec150))
+* **genre:** genres with id & state support ([e4083d8](https://github.com/ffalt/jamberry/commit/e4083d80c10f4913c1f83a2135bc96c6c7c8d24c))
+* **info:** show info if server api mismatch client version ([0342500](https://github.com/ffalt/jamberry/commit/03425000d1c48ef62858c8c91173e9252f3d4f3d))
+
+### Bug Fixes
+
+* **genre:** use genre ids ([a5e6474](https://github.com/ffalt/jamberry/commit/a5e64740dc662c39ace75e43618545db75ff621f))
+
+## 0.4.1 (2020-09-17)
+
+skipped
+
+## 0.4.0 (2020-09-17)
+
+Start using standard-version changelog

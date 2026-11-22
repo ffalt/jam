@@ -1,0 +1,16 @@
+@use "_scss/mixins/view";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: hidden auto;
+	flex: 0 1 100%;
+
+	.obj {
+		@include view.view-host;
+
+		.content {
+			@include view.view-content;
+		}
+	}
+}

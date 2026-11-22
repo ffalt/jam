@@ -1,0 +1,42 @@
+@use "_scss/variables";
+
+:host {
+	width: 100%;
+	display: block;
+	text-align: center;
+
+	image-cropper {
+		width: 300px;
+		display: block;
+	}
+
+	.image-crop {
+		display: inline-block;
+		text-align: center;
+		margin-left: variables.$margin-sm;
+		margin-right: variables.$margin-sm;
+	}
+
+	.image-preview {
+		margin-left: variables.$margin-sm;
+		margin-right: variables.$margin-sm;
+		display: inline-block;
+
+		img {
+			width: 300px;
+		}
+	}
+
+	// .artwork {
+	//	display: inline-block;
+	//	padding-top: variables.$padding;
+	//	padding-right: variables.$padding;
+	//	font-size: 0.8em;
+	//	text-align: center;
+	// }
+	// .artwork-types {
+	// }
+	// .delete-button {
+	//	user-select: none;
+	// }
+}

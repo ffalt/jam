@@ -1,0 +1,37 @@
+<div class="view-login">
+	<div class="container-login">
+		<div class="login-card">
+			<div class="login-header">
+				<app-logo-icon class="login-logo" />
+				<h1>{{ app.name }}</h1>
+				<p class="login-subtitle" i18n>Sign in to your account</p>
+			</div>
+			<form (submit)="login($event)">
+				@if (showServer) {
+					<div class="form-field">
+						<label i18n>Server</label>
+						<div class="input-wrapper">
+							<input type="text" name="server" placeholder="https://your-server.com" i18n-placeholder [(ngModel)]="credentials.server" autocomplete="url">
+						</div>
+					</div>
+				}
+				<div class="form-field">
+					<label i18n>User</label>
+					<div class="input-wrapper">
+						<input [(ngModel)]="credentials.username" autocomplete="username" i18n-placeholder name="user" placeholder="Username" type="text">
+					</div>
+				</div>
+				<div class="form-field">
+					<label i18n>Password</label>
+					<div class="input-wrapper">
+						<input [(ngModel)]="credentials.password" autocomplete="password" i18n-placeholder name="pass" placeholder="Password" type="password">
+					</div>
+				</div>
+				@if (error) {
+					<div class="error">{{ error }}</div>
+				}
+				<button class="login-submit" type="submit" i18n>Sign In</button>
+			</form>
+		</div>
+	</div>
+</div>

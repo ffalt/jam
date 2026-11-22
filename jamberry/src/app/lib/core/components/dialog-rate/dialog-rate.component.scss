@@ -1,0 +1,13 @@
+@use "_scss/variables";
+
+:host {
+	.star-rating {
+		cursor: pointer;
+		padding: 0 3px;
+
+		.icon {
+			font-size: 1.3em;
+			color: orange;
+		}
+	}
+}

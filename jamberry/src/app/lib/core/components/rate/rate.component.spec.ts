@@ -1,0 +1,25 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { RateComponent } from './rate.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('RateComponent', () => {
+	let component: RateComponent;
+	let fixture: ComponentFixture<RateComponent>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [RateComponent],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(RateComponent);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

@@ -1,0 +1,25 @@
+@use "_scss/variables";
+@use "_scss/mixins/button";
+
+:host {
+	height: 100%;
+	width: 100%;
+	display: block;
+	overflow: hidden;
+
+	.folders {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		width: 100%;
+
+		.actions {
+			@include button.action-buttons;
+		}
+
+		app-admin-folder-list {
+			overflow-y: auto;
+		}
+
+	}
+}

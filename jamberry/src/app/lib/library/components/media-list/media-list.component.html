@@ -1,0 +1,48 @@
+<app-background-text-list [list]="entries()" name="Tracks" />
+@if (entries(); as entries) {
+	@if (entries.length > 0) {
+		<div class="tracks">
+			<div class="heading">
+				<div class="fav" title="Favorite Track" i18n-title><app-icon-heart-empty /></div>
+				@if (showRating()) {
+					<div class="rating" title="Rating" i18n-title><app-icon-checkmark /></div>
+				}
+				@if (showPlayCount()) {
+					<div class="play-count" title="Play Counter" i18n-title><app-icon-headphones /></div>
+				}
+				@if (showPlayDate()) {
+					<div class="play-date" title="Last Played" i18n-title><app-icon-clock /></div>
+				}
+				<div class="number" title="Track Number" i18n-title><app-icon-hash /></div>
+				<div i18n class="title" title="Title" i18n-title>Track</div>
+				<div class="length" title="Duration" i18n-title><app-icon-stopwatch /></div>
+			</div>
+			@for (entry of entries; track entry) {
+				<div class="track" (dblclick)="playTrack(entry)" (contextmenu)="onContextMenu($event, entry)">
+					<div class="fav"><a (click)="actions.toggleMediaBaseFav(entry)">
+						<app-fav-icon title="Toggle Favorite" i18n-title [faved]="entry.state?.faved" />
+					</a></div>
+					@if (showRating()) {
+						<div class="rating"><app-icon-checkmark class="small-screen-icon" /> {{ entry.state?.rated }}</div>
+					}
+					@if (showPlayCount()) {
+						<div class="play-count"><app-icon-headphones class="small-screen-icon" /> {{ entry.state?.played }}</div>
+					}
+					@if (showPlayDate()) {
+						<div title="{{entry.state?.lastPlayed | date:'long'}}" class="play-date"><app-icon-clock class="small-screen-icon" /> {{ entry.state?.lastPlayed | ago }}</div>
+					}
+					<div class="number"><app-icon-hash class="small-screen-icon" />
+						@if ((entry.tag?.discTotal || 0) > 1 && entry.tag?.disc; as disc) {
+							{{ disc }} -
+						}
+						{{ entry.tag?.trackNr }}
+					</div>
+					<div class="title"><p>{{ entry.tag?.title }}</p>@if (showArtist()) {
+						<a title="Artist" i18n-title (click)="navig.toMediaArtist(entry)">{{ entry.tag?.artist }}</a>
+					}</div>
+					<div class="length"><app-icon-stopwatch class="small-screen-icon" /> {{ entry.duration | duration }}</div>
+				</div>
+			}
+		</div>
+	}
+}

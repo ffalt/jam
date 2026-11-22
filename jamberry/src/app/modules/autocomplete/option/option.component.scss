@@ -1,0 +1,17 @@
+@use "_scss/variables";
+
+:host {
+	display: block;
+	padding: variables.$padding-xs;
+	cursor: pointer;
+
+	&:hover {
+		background-color: var(--control-hover);
+		color: var(--on-control-hover);
+	}
+
+	&.active {
+		background-color: var(--control-active);
+		color: var(--on-control-active);
+	}
+}

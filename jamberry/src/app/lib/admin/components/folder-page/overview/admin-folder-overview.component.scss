@@ -1,0 +1,74 @@
+@use "_scss/variables";
+@use "_scss/mixins/button";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	display: block;
+
+	.actions {
+		@include button.action-buttons;
+	}
+
+	.folder {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		width: 100%;
+
+		.content {
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+
+			.properties {
+				width: 100%;
+				display: flex;
+				flex-flow: row wrap;
+				padding: variables.$padding;
+
+				& > div {
+					flex: 0 0 50%;
+
+					@media (max-width: variables.$break-phone) {
+						flex: 0 0 100%;
+					}
+
+					& > div {
+						padding-top: variables.$padding-xs;
+						padding-bottom: variables.$padding-xs;
+
+						> div {
+							color: var(--on-background-highlight);
+
+							a {
+								color: var(--on-background-highlight);
+
+								&:hover {
+									color: var(--on-background);
+								}
+							}
+						}
+
+						.label {
+							color: var(--on-background);
+							font-size: 0.7em;
+							text-transform: uppercase;
+							padding-bottom: 2px;
+						}
+
+					}
+				}
+			}
+
+			.artworks {
+				border-top: 1px solid var(--background-border);
+
+				.artworks-content {
+					padding: 0 variables.$padding variables.$padding;
+				}
+			}
+		}
+	}
+}
