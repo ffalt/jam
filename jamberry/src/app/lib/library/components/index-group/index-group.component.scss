@@ -1,0 +1,38 @@
+@use "_scss/variables";
+@use "_scss/mixins/cards";
+@use "_scss/mixins/icons";
+
+:host {
+	.index-cards {
+		@include cards.media-cards;
+
+		.index-card-placeholder {
+			@include cards.media-card;
+		}
+	}
+
+	.title {
+		padding: variables.$padding-sm;
+		min-height: 48px;
+		line-height: 1.25em;
+		font-size: 0.9em;
+		align-items: center;
+		align-content: space-evenly;
+		display: flex;
+
+		&::after {
+			@include icons.icon-chevron-down;
+
+			margin-left: 4px;
+		}
+
+		&.expanded::after {
+			@include icons.icon-chevron-up;
+		}
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+	}
+}
+

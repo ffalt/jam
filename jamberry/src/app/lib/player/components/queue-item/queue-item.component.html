@@ -1,0 +1,25 @@
+@if (entry(); as entry) {
+	<div class="track">
+		<div class="handle" cdkDragHandle><span class="grippy"></span></div>
+		<div class="number">
+			@if (player.currentMedia && player.currentMedia.id === entry.id) {
+				@if (player.isPlaying) {<app-icon-play />} @else {<app-icon-pause />}
+			}
+			@if (!player.currentMedia || player.currentMedia.id !== entry.id) {
+				<app-icon-hash class="small-screen-icon" />
+			}
+			{{ index() + 1 }}
+		</div>
+		<div class="title"><p>{{ entry.tag?.title || entry.name }}</p>
+			@if (entry.artistID; as artistID) {
+				@if (entry.tag?.artist; as tagArtist) {
+					<a tabindex="0"
+						 (click)="navig.toArtistID(artistID, tagArtist)"
+						 (keydown.enter)="navig.toArtistID(artistID, tagArtist)">{{ tagArtist }}</a>
+				}
+			}
+		</div>
+		<div class="length"><app-icon-stopwatch class="small-screen-icon" /> {{ entry.duration|duration }}</div>
+		<div class="remove"><a title="Remove From Queue" i18n-title tabindex="0" appClickStop (click)="queue.remove(entry)" (keydown.enter)="queue.remove(entry)"><app-icon-remove /></a></div>
+	</div>
+}

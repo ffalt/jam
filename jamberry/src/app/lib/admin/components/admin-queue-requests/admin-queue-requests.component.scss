@@ -1,0 +1,32 @@
+@use "_scss/variables";
+
+:host {
+	.queue-overlay {
+		position: fixed;
+		right: 16px;
+		bottom: 16px;
+		padding: variables.$padding;
+		background-color: var(--control);
+		color: var(--on-control);
+		border: 1px solid var(--control-border);
+		z-index: 1000;
+
+		.current {
+			display: inline-flex;
+			align-items: center;
+		}
+
+		.label {
+			text-transform: uppercase;
+			font-size: 0.8em;
+			letter-spacing: 1px;
+			color: var(--on-control-ambient);
+			padding-left: variables.$padding-sm;
+			padding-right: variables.$padding-xs;
+		}
+
+		.other {
+			border-top: 1px solid var(--background-border);
+		}
+	}
+}

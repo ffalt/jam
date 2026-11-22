@@ -1,0 +1,121 @@
+@use "../variables";
+
+@mixin tabs {
+	padding-left: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	list-style: none;
+	border: none;
+	display: flex;
+	flex-flow: row wrap;
+	width: 100%;
+
+	> li {
+		position: relative;
+		display: block;
+		margin-bottom: -1px;
+		flex: 1;
+		align-self: stretch;
+		border-top: 4px solid transparent;
+		border-bottom: 4px solid transparent;
+		padding: 0;
+
+		&:hover {
+			background-color: var(--control-hover);
+			transition: all 0.4s ease;
+			border-bottom: 4px solid transparent;
+		}
+
+		> div {
+			padding-bottom: variables.$padding;
+		}
+
+		> a {
+			padding: variables.$padding-sm 0;
+			text-align: center;
+			align-items: center;
+			place-content: center center;
+			margin-right: 2px;
+			line-height: 1.4286;
+			border-radius: 4px 4px 0 0;
+			position: relative;
+			display: flex;
+			cursor: pointer;
+			border: none;
+			font-size: variables.$small;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			height: 100%;
+			color: var(--on-control);
+			user-select: none;
+
+			&:focus, &:hover {
+				background-color: unset;
+				border: none;
+				color: var(--on-control-hover);
+			}
+		}
+
+		&.active {
+			cursor: default;
+			border-bottom-color: var(--primary) !important;
+
+			a {
+				cursor: default;
+				background-color: unset;
+				color: var(--on-control-hover);
+			}
+
+			&:focus, &:hover {
+				border-bottom-color: var(--primary);
+			}
+		}
+
+		&.disabled > a {
+			color: var(--on-control-ambient-disabled);
+
+			&:focus, &:hover {
+				color: var(--on-control-ambient-disabled);
+				text-decoration: none;
+				cursor: not-allowed;
+				background-color: transparent;
+			}
+		}
+	}
+
+	@media (max-width: variables.$break-pad) {
+		align-items: center;
+		place-content: center center;
+
+		> li {
+			padding: variables.$padding-xs;
+
+			> a {
+				font-size: 0.8em;
+			}
+		}
+	}
+
+	@media (max-width: variables.$break-mobile) {
+		> li {
+			padding: 0 variables.$padding-xs;
+
+			> a {
+				font-size: 0.70em;
+			}
+		}
+	}
+
+	&.mini {
+		> li {
+			flex: 0;
+
+			@media (max-width: variables.$break-pad) {
+				min-width: 20px;
+			}
+		}
+
+		padding-left: variables.$padding;
+		padding-right: variables.$padding;
+	}
+}

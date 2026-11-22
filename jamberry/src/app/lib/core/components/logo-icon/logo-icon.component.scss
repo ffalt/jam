@@ -1,0 +1,25 @@
+@use "_scss/variables";
+
+:host {
+	display: inline-block;
+	vertical-align: middle;
+
+	svg {
+		vertical-align: middle;
+		cursor: pointer;
+		height: 100%;
+		width: 100%;
+
+		.leaf {
+			fill: #008300;
+		}
+
+		.berry {
+			fill: #ab0025;
+		}
+
+		&:hover {
+			transform: scale(1.1);
+		}
+	}
+}

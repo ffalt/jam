@@ -1,0 +1,49 @@
+@use "../variables";
+
+@mixin key-value-list {
+	.section-title {
+		padding-top: variables.$padding-lg;
+		padding-bottom: variables.$padding;
+	}
+
+	.key-value-row {
+		border-top: 1px solid var(--background-border);
+		display: flex;
+		flex-flow: row nowrap;
+		flex-wrap: nowrap;
+		align-items: center;
+
+		&:last-of-type {
+			border-bottom: 1px solid var(--background-border);
+		}
+
+		> div:first-of-type {
+			width: 30%;
+			min-width: 100px;
+		}
+
+		> div:last-of-type {
+			padding-left: variables.$padding;
+			width: 60%;
+			color: var(--on-background-highlight);
+
+			a {
+				color: var(--on-background-highlight);
+
+				&:hover {
+					color: var(--on-background);
+				}
+			}
+		}
+
+		div {
+			padding-top: variables.$padding-sm;
+			padding-bottom: variables.$padding-sm;
+
+			span {
+				display: inline-block;
+				padding-right: variables.$padding;
+			}
+		}
+	}
+}

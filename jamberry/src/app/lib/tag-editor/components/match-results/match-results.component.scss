@@ -1,0 +1,80 @@
+@use "_scss/variables";
+
+:host {
+	.match-results {
+		flex: 1 1 auto;
+		overflow: auto;
+
+		.icon-checkmark {
+			color: var(--primary);
+		}
+
+		.icon-warning {
+			color: var(--accent);
+		}
+
+		.value {
+			color: var(--on-background-highlight);
+			padding-right: variables.$padding-xs;
+		}
+
+		.match-releasegroup {
+			padding: variables.$padding-xs variables.$padding-xs variables.$padding-xs variables.$padding;
+
+			.match-release-info {
+				.label {
+					margin-right: variables.$padding-xs;
+				}
+			}
+
+			.match-release-info, .match-tracks-info {
+				font-size: 0.8em;
+			}
+
+			.match-release-info, .match-tracks-info, .match-select-releases {
+				padding-top: 4px;
+			}
+
+			.match-select-releases {
+				button {
+					font-size: 0.7em;
+					line-height: 0.7em;
+					vertical-align: top;
+					margin-right: variables.$padding-xs;
+				}
+
+				label {
+					display: flex;
+				}
+
+				app-score-box {
+					display: block;
+					width: 20px;
+					height: 20px;
+				}
+			}
+
+			app-image-base64 {
+				height: 32px;
+				width: 32px;
+			}
+
+			.match-track-info {
+				padding-top: 2px;
+				padding-bottom: 2px;
+				border-top: 1px solid var(--background-border);
+
+				&.missing {
+					color: var(--accent)
+				}
+
+			}
+
+			.match-release {
+				white-space: nowrap;
+				padding: variables.$padding-xs variables.$padding-xs variables.$padding-xs 42px;
+			}
+		}
+
+	}
+}

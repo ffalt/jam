@@ -1,0 +1,17 @@
+<aside class="left">
+	<app-libary-sidebar />
+</aside>
+<app-splitter class="split-pane-divider-left" />
+<main class="middle" role="main">
+	<router-outlet />
+</main>
+@if (showSidebarRight) {
+	<app-splitter [leftSnap]="false" class="split-pane-divider-right" />
+	<aside class="right">
+		<app-sidebar-right (closeEvent)="toggleSidebarRight()" />
+	</aside>
+} @else {
+	<button class="sidebar-right-show" (click)="toggleSidebarRight()" i18n-title title="Show sidebar">
+		<app-icon-left-open-mini aria-hidden="true" />
+	</button>
+}

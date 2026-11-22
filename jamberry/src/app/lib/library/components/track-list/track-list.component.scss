@@ -1,0 +1,21 @@
+@use "_scss/mixins/table";
+
+:host {
+	width: 100%;
+
+	.tracks {
+		@include table.track-table;
+
+		.heading, .track {
+			@include table.track-table-row;
+		}
+
+		.heading {
+			@include table.track-table-header-row;
+		}
+
+		.track {
+			@include table.track-table-data-row;
+		}
+	}
+}

@@ -1,0 +1,77 @@
+import { Overlay, OverlayConfig, type OverlayRef } from '@angular/cdk/overlay';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { type ComponentRef, DestroyRef, inject, Injectable, Injector, type ProviderToken } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DialogOverlayRef } from './dialog-overlay-ref.class';
+import { DialogOverlayComponent } from './dialog-overlay.component';
+import { DIALOG_OVERLAY_DIALOG_CONFIG } from './dialog-overlay.tokens';
+import { DEFAULT_CONFIG, type DialogOverlayDialogConfig } from './dialog-overlay.types';
+
+export class PortalInjector<T> implements Injector {
+	constructor(
+		private readonly parentInjector: Injector,
+		private readonly customTokens: WeakMap<ProviderToken<T>, T>
+	) {
+	}
+
+	get(token: ProviderToken<T>, notFoundValue: undefined): T {
+		const value = this.customTokens.get(token);
+
+		return value ?? this.parentInjector.get<T>(token, notFoundValue);
+	}
+}
+
+@Injectable()
+export class DialogOverlayService {
+	private readonly injector = inject(Injector);
+	private readonly overlay = inject(Overlay);
+	private readonly lifeRef = inject(DestroyRef);
+
+	open<T>(config: Partial<DialogOverlayDialogConfig<T>> = {}): DialogOverlayRef {
+		// Override default configuration
+		const dialogConfig: DialogOverlayDialogConfig<T> = { ...DEFAULT_CONFIG, ...config };
+		// Returns an OverlayRef which is a PortalHost
+		const overlayRef = this.createOverlay<T>(dialogConfig);
+		// Instantiate remote control
+		const dialogRef = new DialogOverlayRef(overlayRef);
+		dialogRef.componentInstance = this.attachDialogContainer(overlayRef, dialogConfig, dialogRef);
+		overlayRef.backdropClick()
+			.pipe(takeUntilDestroyed(this.lifeRef))
+			.subscribe(() => {
+				dialogRef.close();
+			});
+		return dialogRef;
+	}
+
+	private createOverlay<T>(config: DialogOverlayDialogConfig<T>): OverlayRef {
+		return this.overlay.create(this.getOverlayConfig(config));
+	}
+
+	private attachDialogContainer(overlayRef: OverlayRef, config: DialogOverlayDialogConfig<any>, dialogRef: DialogOverlayRef): DialogOverlayComponent {
+		const injector = this.createInjector(config, dialogRef);
+		const containerPortal = new ComponentPortal(DialogOverlayComponent, undefined, injector);
+		const containerRef: ComponentRef<DialogOverlayComponent> = overlayRef.attach(containerPortal);
+		return containerRef.instance;
+	}
+
+	private createInjector<D>(config: DialogOverlayDialogConfig<D>, dialogRef: DialogOverlayRef): Injector {
+		return Injector.create({
+			providers: [
+				{ provide: DialogOverlayRef, useValue: dialogRef },
+				{ provide: DIALOG_OVERLAY_DIALOG_CONFIG, useValue: config }
+			],
+			parent: this.injector
+		});
+	}
+
+	private getOverlayConfig(config: DialogOverlayDialogConfig<any>): OverlayConfig {
+		const positionStrategy = this.overlay.position().global().centerHorizontally().centerVertically();
+		const overlayConfig = new OverlayConfig();
+		overlayConfig.hasBackdrop = config.hasBackdrop;
+		overlayConfig.backdropClass = config.backdropClass;
+		overlayConfig.panelClass = config.panelClass;
+		overlayConfig.scrollStrategy = this.overlay.scrollStrategies.block();
+		overlayConfig.positionStrategy = positionStrategy;
+		return overlayConfig;
+	}
+}

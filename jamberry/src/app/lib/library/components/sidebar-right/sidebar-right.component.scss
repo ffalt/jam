@@ -1,0 +1,51 @@
+@use "_scss/variables";
+@use "_scss/mixins/tabs";
+
+:host {
+	position: relative;
+	flex: 0 1 100%;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background-color: var(--control);
+	color: var(--on-control);
+
+	.navigation {
+		width: 100%;
+		border-bottom: 1px solid var(--control-border);
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: space-between;
+		align-items: center;
+
+		.tabs {
+			@include tabs.tabs;
+		}
+
+		.close-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 100%;
+			border: none;
+			background: transparent;
+			color: var(--on-control);
+			cursor: pointer;
+			font-size: 0.9rem;
+			flex-shrink: 0;
+			margin-right: 0.25rem;
+
+			&:hover {
+				color: var(--accent);
+			}
+		}
+	}
+
+	.content {
+		flex: 1 1 auto;
+		position: relative;
+		overflow: hidden;
+		height: 100%;
+	}
+}

@@ -1,0 +1,407 @@
+import { ChangeDetectorRef, Component, effect, inject, input, signal, viewChild, viewChildren } from '@angular/core';
+import type { ComponentCanDeactivate } from '@core/guards/pending-changes/pending-changes.guard';
+import { DialogOverlayService } from '@modules/dialog-overlay';
+import { CellEditor } from '../cell-editor/cell-editor.class';
+import { isDownArrowKey, isLeftRightArrowKeys, isRightArrowKey, isUpDownArrowKeys } from '@utils/keys';
+import { FolderType, type Jam, JamService, TrackOrderFields } from '@jam';
+import { TagEditor } from '../../model/tag-editor.class';
+import { FilenameColumnID, type RawTagEditCell, type RawTagEditColumn, type RawTagEditRow } from '../../model/tag-editor.types';
+import { rebuildTag } from '../../model/tag-editor.utils';
+import { DialogChooseColumnsComponent, type SelectColumns } from '../dialog-choose-columns/dialog-choose-columns.component';
+import { DialogMatchReleaseComponent } from '../dialog-match-release/dialog-match-release.component';
+import { DialogMatchDiscogsComponent } from '../dialog-match-discogs/dialog-match-discogs.component';
+import type { ReleaseDataMatching, ReleaseMatching } from '../match-release/match-release.component';
+import { CellEditorComponent } from '../cell-editor/cell-editor.component';
+import { ColumnToolComponent } from '../column-tool/column-tool.component';
+import { LoadingComponent } from '@core/components/loading/loading.component';
+import { IconDiscogsComponent } from '@core/components/icons/icon-discogs.component';
+import { AdminFolderService } from '@core/services/admin-folder/admin-folder.service';
+import { NotifyService } from '@core/services/notify/notify.service';
+import { ContextMenuModule } from '@modules/ngx-contextmenu/lib/ngx-contextmenu.module';
+import { ContextMenuService } from '@modules/ngx-contextmenu/lib/contextmenu.service';
+import type { ContextMenuComponent } from '@modules/ngx-contextmenu/lib/contextmenu.component';
+import { IconEditComponent } from '@core/components/icons/icon-edit.component';
+import { IconFloppyComponent } from '@core/components/icons/icon-floppy.component';
+import { IconListAddComponent } from '@core/components/icons/icon-list-add.component';
+import { IconReloadComponent } from '@core/components/icons/icon-reload.component';
+import { IconSpinComponent } from '@core/components/icons/icon-spin.component';
+import { IconMusicbrainzComponent } from '@core/components/icons/icon-musicbrainz.component';
+
+export interface SaveAction {
+	edit: RawTagEditRow;
+	track: Jam.Track;
+	rawTag?: Jam.MediaTagRaw;
+	filename?: string;
+}
+
+@Component({
+	selector: 'app-admin-tag-editor',
+	templateUrl: './tag-editor.component.html',
+	styleUrls: ['./tag-editor.component.scss'],
+	host: {
+		'(window:beforeunload)': 'canDeactivate()'
+	},
+	imports: [
+		ContextMenuModule,
+		CellEditorComponent,
+		ColumnToolComponent,
+		LoadingComponent,
+		IconDiscogsComponent,
+		IconEditComponent,
+		IconFloppyComponent,
+		IconListAddComponent,
+		IconReloadComponent,
+		IconSpinComponent,
+		IconMusicbrainzComponent
+	]
+})
+export class TagEditorComponent implements ComponentCanDeactivate {
+	readonly id = input<string>();
+	readonly folder = signal<Jam.Folder | undefined>(undefined);
+	readonly tracks = signal<Array<Jam.Track> | undefined>(undefined);
+	readonly canLoadRecursive = signal(false);
+	readonly isSaving = signal(false);
+	editor: TagEditor;
+	activeCol?: RawTagEditColumn;
+	private readonly cellEditors = viewChildren(CellEditor);
+	private readonly actionMenu = viewChild<ContextMenuComponent>('actionMenu');
+	private readonly folderService = inject(AdminFolderService);
+	private readonly contextMenuService = inject(ContextMenuService);
+	private readonly jam = inject(JamService);
+	private readonly notify = inject(NotifyService);
+	private readonly dialogOverlay = inject(DialogOverlayService);
+	private readonly changeDetector = inject(ChangeDetectorRef);
+
+	get hasOneChanged(): boolean {
+		return this.editor.edits.some(e => e.changed);
+	}
+
+	constructor() {
+		this.editor = new TagEditor(this.jam, () => {
+			this.changeDetector.markForCheck();
+		});
+		effect(() => {
+			this.refresh();
+		});
+	}
+
+	findMissingLyrics(): void {
+		this.editor.findMissingLyrics(this.tracks())
+			.catch((error: unknown) => {
+				this.notify.error(error);
+			});
+	}
+
+	canDeactivate(): boolean {
+		return !this.isSaving();
+	}
+
+	refresh(): void {
+		this.folder.set(undefined);
+		this.tracks.set(undefined);
+		this.activeCol = undefined;
+		const id = this.id();
+		if (id) {
+			this.jam.folder.id({
+				id: id,
+				folderIncFolders: true,
+				folderIncTracks: true,
+				folderIncParents: true,
+				folderIncTag: true,
+				trackIncTag: true,
+				trackIncRawTag: true,
+				folderChildIncTag: true
+			})
+				.then(data => {
+					this.display(data);
+				})
+				.catch((error: unknown) => {
+					this.notify.error(error);
+				});
+		}
+	}
+
+	loadRecursive(): void {
+		const folder = this.folder();
+		if (!folder) {
+			return;
+		}
+		this.canLoadRecursive.set(false);
+		this.tracks.set(undefined);
+		this.jam.track.search({ childOfID: folder.id, trackIncTag: true, trackIncRawTag: true, orderBy: TrackOrderFields.filename })
+			.then(result => {
+				this.tracks.set(result.items);
+				this.editor.build(result.items);
+			})
+			.catch((error: unknown) => {
+				this.notify.error(error);
+			});
+	}
+
+	save(): void {
+		if (this.isSaving()) {
+			return;
+		}
+		const edits = this.editor.edits.filter(ed => ed.changed);
+		if (edits.length === 0) {
+			return;
+		}
+		const saveActions: Array<SaveAction> = [];
+		for (const edit of edits) {
+			edit.saving = true;
+			saveActions.push(this.prepareEditSave(edit));
+		}
+		const action = saveActions.shift();
+		if (!action) {
+			return;
+		}
+		this.isSaving.set(true);
+		this.runSave(action, saveActions)
+			.then(() => {
+				this.isSaving.set(false);
+			})
+			.catch((error: unknown) => {
+				this.isSaving.set(false);
+				for (const edit of edits) {
+					edit.saving = false;
+				}
+				this.notify.error(error);
+			});
+	}
+
+	prepareEditSave(edit: RawTagEditRow): SaveAction {
+		const result: SaveAction = {
+			edit,
+			track: edit.track
+		};
+		let changedCells = edit.cells.filter(cell => cell.changed);
+		const fileNameCell: RawTagEditCell<{ text: string }> | undefined = changedCells.find(cell => cell.column.def.id === FilenameColumnID);
+		if (fileNameCell) {
+			changedCells = changedCells.filter(cell => cell.column.def.id !== FilenameColumnID);
+			const filename = fileNameCell.frames[0].value.text;
+			if (filename && edit.track.name !== filename) {
+				result.filename = filename;
+			}
+		}
+		if (changedCells.length > 0) {
+			result.rawTag = rebuildTag(edit);
+		}
+		return result;
+	}
+
+	saveEdit(edit: RawTagEditRow): void {
+		if (!edit.changed || this.isSaving()) {
+			return;
+		}
+		this.isSaving.set(true);
+		const action = this.prepareEditSave(edit);
+		this.runSave(action, [])
+			.then(() => {
+				this.isSaving.set(false);
+			})
+			.catch((error: unknown) => {
+				this.isSaving.set(false);
+				this.notify.error(error);
+			});
+	}
+
+	chooseColumns(): void {
+		if (this.isSaving()) {
+			this.notify.error(new Error('Saving is in progress'));
+			return;
+		}
+		const data = { columns: this.editor.columns, resultColumns: [] };
+		this.dialogOverlay.open<SelectColumns>({
+			childComponent: DialogChooseColumnsComponent,
+			title: 'Choose Columns',
+			panelClass: 'overlay-panel-large-buttons',
+			data,
+			onOkBtn: async () => {
+				try {
+					const tracks = this.tracks();
+					if (tracks) {
+						this.editor.updateColumns(tracks, data.resultColumns);
+					}
+				} catch (error) {
+					this.notify.error(error);
+					return Promise.reject(error);
+				}
+			},
+			onCancelBtn: async () => Promise.resolve()
+		});
+	}
+
+	brainz(): void {
+		const folder = this.folder();
+		const tracks = this.tracks();
+		if (!folder || !tracks) {
+			return;
+		}
+		if (!this.canDeactivate()) {
+			this.notify.error(new Error('Saving is in progress'));
+			return;
+		}
+		const matching: ReleaseMatching = {
+			folder,
+			matchings: tracks.map(t => ({ track: t })),
+			apply: () => {
+				this.applyMatching(matching);
+			}
+		};
+		this.dialogOverlay.open<ReleaseMatching>({
+			childComponent: DialogMatchReleaseComponent,
+			title: 'Release Matching',
+			data: matching,
+			panelClass: 'overlay-panel-large'
+		});
+	}
+
+	discogs(): void {
+		const folder = this.folder();
+		const tracks = this.tracks();
+		if (!folder || !tracks) {
+			return;
+		}
+		if (!this.canDeactivate()) {
+			this.notify.error(new Error('Saving is in progress'));
+			return;
+		}
+		const matching: ReleaseMatching = {
+			folder,
+			matchings: tracks.map(t => ({ track: t })),
+			apply: () => {
+				this.applyMatching(matching);
+			}
+		};
+		this.dialogOverlay.open<ReleaseMatching>({
+			childComponent: DialogMatchDiscogsComponent,
+			title: 'Discogs Match',
+			data: matching,
+			panelClass: 'overlay-panel-large'
+		});
+	}
+
+	onContextMenu($event: MouseEvent) {
+		this.contextMenuService.show.next({
+			contextMenu: this.actionMenu(),
+			event: $event,
+			item: undefined
+		});
+		$event.preventDefault();
+		$event.stopPropagation();
+	}
+
+	onCellEditorNavigationKeyDown(data: { cell: RawTagEditCell<any>; event: KeyboardEvent }): void {
+		if (isUpDownArrowKeys(data.event)) {
+			this.onCellEditorNavigationKeyDownUpDown(data);
+		} else if (isLeftRightArrowKeys(data.event)) {
+			this.onCellEditorNavigationKeyDownLeftRight(data);
+		}
+	}
+
+	private applyMatching(matching: ReleaseMatching) {
+		for (const match of matching.matchings) {
+			if (match.rawTag) {
+				match.track.tagRaw = match.rawTag;
+			}
+		}
+		const tracks = this.tracks();
+		if (!tracks) {
+			return;
+		}
+
+		this.editor.build(tracks);
+		this.applyMatchingTracks(matching);
+		this.tracks.set([...tracks]);
+	}
+
+	private applyMatchingTracks(matching: ReleaseMatching) {
+		for (const match of matching.matchings) {
+			if (match.rawTag) {
+				this.applyMatchingTrack(match);
+			}
+		}
+	}
+
+	private applyMatchingTrack(match: ReleaseDataMatching) {
+		const edit = this.editor.edits.find(e => e.track === match.track);
+		if (!edit) {
+			return;
+		}
+
+		edit.changed = true;
+		for (const cell of edit.cells) {
+			if (cell.column.def.id !== FilenameColumnID) {
+				cell.changed = true;
+			}
+		}
+	}
+
+	private onCellEditorNavigationKeyDownLeftRight(data: { cell: RawTagEditCell<any>; event: KeyboardEvent }) {
+		const nextIndex = data.cell.parent.cells.indexOf(data.cell) + (isRightArrowKey(data.event) ? 1 : -1);
+		const nextcell = nextIndex >= 0 ? data.cell.parent.cells.at(nextIndex) : undefined;
+		if (!nextcell) {
+			return;
+		}
+		const nexteditor = this.cellEditors().find(editor => editor.cell() === nextcell);
+		if (nexteditor) {
+			setTimeout(() => {
+				nexteditor.navigTo();
+			}, 0);
+		}
+	}
+
+	private onCellEditorNavigationKeyDownUpDown(data: { cell: RawTagEditCell<any>; event: KeyboardEvent }) {
+		const rowIndex = this.editor.edits.indexOf(data.cell.parent);
+		const nextRowIndex = rowIndex + (isDownArrowKey(data.event) ? 1 : -1);
+		const nextrow = nextRowIndex >= 0 ? this.editor.edits.at(nextRowIndex) : undefined;
+		if (!nextrow) {
+			return;
+		}
+		const nextcell = nextrow.cells.at(data.cell.parent.cells.indexOf(data.cell));
+		if (!nextcell) {
+			return;
+		}
+		const nexteditor = this.cellEditors().find(editor => editor.cell() === nextcell);
+		if (nexteditor) {
+			setTimeout(() => {
+				nexteditor.navigTo();
+			}, 0);
+		}
+	}
+
+	private async runSave(action: SaveAction, actions: Array<SaveAction>): Promise<void> {
+		try {
+			if (action.filename) {
+				const item = await this.jam.track.rename({ id: action.track.id, name: action.filename });
+				this.folderService.waitForQueueResult('Renaming Track', item, [action.track.parentID], [], [action.track.id]);
+			}
+			if (action.rawTag) {
+				const item = await this.jam.track.rawTagSet({ id: action.track.id, tag: action.rawTag });
+				this.folderService.waitForQueueResult('Writing Track Tag', item, [action.track.parentID], [], [action.track.id]);
+			}
+			action.edit.saving = false;
+			if (action.rawTag) {
+				action.edit.tag = action.rawTag;
+			}
+			action.edit.changed = false;
+		} catch (error) {
+			return Promise.reject(error);
+		}
+		const next = actions.shift();
+		if (next) {
+			await this.runSave(next, actions);
+		}
+	}
+
+	private display(folder: Jam.Folder): void {
+		const tracks = folder.tracks ?? [];
+		this.folder.set(folder);
+		this.tracks.set(tracks);
+		this.editor.build(tracks);
+		this.canLoadRecursive.set(tracks.length === 0 && (folder.folders ?? []).length > 0);
+		if (this.canLoadRecursive() && folder.type === FolderType.multialbum) {
+			this.loadRecursive();
+		}
+	}
+}

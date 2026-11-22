@@ -1,0 +1,66 @@
+@use "../variables";
+
+@mixin base-button {
+	border-radius: 6px;
+	border-width: 1px;
+	border-style: solid;
+	padding: (variables.$padding-xs * 2) variables.$padding (variables.$padding-xs * 1.6);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-size: variables.$x-small;
+	line-height: variables.$x-small;
+	cursor: pointer;
+	overflow: hidden;
+	position: relative;
+	user-select: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin button {
+	@include base-button;
+
+	&::before {
+		position: absolute;
+		content: '';
+		top: 0;
+		left: 0;
+		width: 0;
+		height: 100%;
+		transition: width 20ms ease;
+		z-index: 0;
+		background-color: rgb(white, 0.2);
+	}
+
+	&:hover {
+		&::before {
+			width: 100%;
+		}
+	}
+}
+
+@mixin header-actions-buttons {
+	> button {
+		margin-right: variables.$margin-xs;
+		margin-bottom: variables.$margin-sm;
+	}
+}
+
+@mixin action-buttons {
+	padding: variables.$padding-sm variables.$padding 0;
+	border-bottom: 1px solid var(--background-border);
+
+	> button {
+		margin-right: variables.$margin-xs;
+		margin-bottom: variables.$margin-sm;
+	}
+
+	> label {
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		font-size: variables.$x-small;
+		margin-left: variables.$margin-xs;
+		margin-right: variables.$margin-xs;
+	}
+}

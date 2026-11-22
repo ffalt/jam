@@ -1,0 +1,26 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { InlineEditComponent } from './inline-edit.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('InlineEditComponent', () => {
+	let component: InlineEditComponent;
+	let fixture: ComponentFixture<InlineEditComponent>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [FormsModule, InlineEditComponent],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(InlineEditComponent);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

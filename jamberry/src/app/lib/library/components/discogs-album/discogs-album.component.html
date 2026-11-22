@@ -1,0 +1,81 @@
+@if (!searchDone()) {
+	<app-loading/>
+} @else if (!hasResults()) {
+	<app-background-text text="No data available" i18n-text/>
+} @else if (isLoadingDetail()) {
+	<app-loading/>
+} @else if (releaseDisplay(); as releaseDisplay) {
+	<div class="discogs-results">
+		<div class="section-title">
+			<ng-container i18n>Album Information by</ng-container>
+			<a [href]="releaseDisplay.discogsUrl" target="_blank" rel="noopener">
+				<!-- eslint-disable-next-line @angular-eslint/template/i18n -->
+				<app-discogs-icon /> Discogs
+			</a>
+		</div>
+		<div class="section">
+			@if (releaseDisplay.title) {
+				<div class="key-value-row">
+					<div i18n>Title</div>
+					<div>{{ releaseDisplay.title }}</div>
+				</div>
+			}
+			@if (releaseDisplay.artist) {
+				<div class="key-value-row">
+					<div i18n>Artist</div>
+					<div>{{ releaseDisplay.artist }}</div>
+				</div>
+			}
+			@if (releaseDisplay.year) {
+				<div class="key-value-row">
+					<div i18n>Year</div>
+					<div>{{ releaseDisplay.year }}</div>
+				</div>
+			}
+			@if (releaseDisplay.genres) {
+				<div class="key-value-row">
+					<div i18n>Genres</div>
+					<div>{{ releaseDisplay.genres }}</div>
+				</div>
+			}
+			@if (releaseDisplay.styles) {
+				<div class="key-value-row">
+					<div i18n>Styles</div>
+					<div>{{ releaseDisplay.styles }}</div>
+				</div>
+			}
+			@if (releaseDisplay.notes) {
+				<div class="discogs-notes">{{ releaseDisplay.notes }}</div>
+			}
+			@if (releaseDisplay.images.length) {
+				<div class="discogs-images">
+					@for (img of releaseDisplay.images; track img) {
+						<img [src]="img" alt="cover" i18n-alt/>
+					}
+				</div>
+			}
+		</div>
+		@if (releaseDisplay.tracklist.length) {
+			<div i18n class="section-title">Tracklist</div>
+			@for (track of releaseDisplay.tracklist; track track.position) {
+				@if (track.isHeading) {
+					<div class="track-heading">{{ track.title }}</div>
+				} @else {
+					<div class="track track-row">
+						<span class="track-pos">{{ track.position }}</span>
+						<span class="track-title">{{ track.title }}</span>
+						<span class="track-dur">{{ track.duration }}</span>
+					</div>
+				}
+			}
+		}
+		@if (releaseDisplay.videos.length) {
+			<div i18n class="section-title">Videos</div>
+			@for (video of releaseDisplay.videos; track video.url) {
+				<div class="track">
+					<a [href]="video.url" target="_blank" rel="noopener">{{ video.title }}</a>
+				</div>
+			}
+		}
+	</div>
+}

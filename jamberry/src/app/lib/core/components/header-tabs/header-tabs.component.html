@@ -1,0 +1,17 @@
+@if (tabs(); as tabs) {
+	@if (tabs.length > 1) {
+		<ul class="tabs" appFocusKeyList role="tablist" [class.mini]="smallTabs()">
+			@for (tab of tabs; track tab) {
+				@if (tab.link) {
+					<li routerLinkActive="active" [routerLinkActiveOptions]="{exact:!!tab.link.exact}">
+						<a appFocusKeyListItem role="tab" [routerLink]="[tab.link.route]">{{ tab.label }}</a>
+					</li>
+				} @else {
+					<li [class.active]="tab.active">
+						<a appFocusKeyListItem role="tab" (click)="tab.click()" (keydown.enter)="tab.click()">{{ tab.label }}</a>
+					</li>
+				}
+			}
+		</ul>
+	}
+}

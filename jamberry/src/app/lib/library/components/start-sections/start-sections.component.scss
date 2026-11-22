@@ -1,0 +1,18 @@
+@use "_scss/variables";
+
+:host {
+	.section-content {
+		display: flex;
+		flex-flow: row wrap;
+
+		> app-start-section {
+			margin-top: variables.$margin;
+			width: 50%;
+			padding-right: variables.$padding-sm;
+
+			@media (max-width: variables.$break-phone) {
+				width: 100%;
+			}
+		}
+	}
+}

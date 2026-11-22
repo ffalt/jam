@@ -1,0 +1,156 @@
+@use "_scss/variables";
+
+@mixin media-card {
+	margin: variables.$margin;
+	width: calc((100% / 4) - 30px);
+	position: relative;
+	overflow: hidden;
+	display: flex;
+	cursor: pointer;
+	tab-index: 0;
+
+	&::before {
+		content: "";
+		display: block;
+		margin-top: 100%;
+	}
+
+	.image {
+		width: 100%;
+		position: relative;
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background-color: rgb(0 0 0 / 0%);
+			transition: background-color 0.3s;
+			pointer-events: none;
+		}
+	}
+
+	.fav, .date, .more {
+		position: absolute;
+		top: 1px;
+		padding: variables.$padding-xs;
+		transform: translateY(-60px);
+		transition: transform 0.3s;
+		user-select: none;
+		border-bottom-left-radius: 3px;
+	}
+
+	.play {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%) scale(0.85);
+		visibility: hidden;
+		opacity: 0;
+		transition-property: opacity, visibility, transform;
+		transition-duration: 0.25s;
+		z-index: 1;
+		border-radius: 24px;
+		box-shadow: 0 4px 16px rgb(0 0 0 / 50%), 0 1px 4px rgb(0 0 0 / 40%);
+		white-space: nowrap;
+	}
+
+	.date {
+		left: 50%;
+		transform: translate(-50%, -60px);
+		font-size: 0.8em;
+	}
+
+	.fav {
+		left: 1px;
+		cursor: pointer;
+	}
+
+	.more {
+		right: 3px;
+		cursor: pointer;
+	}
+
+	.footer {
+		padding: variables.$padding-sm;
+		position: absolute;
+		bottom: 1px;
+		left: 1px;
+		right: 1px;
+		overflow: hidden;
+		height: auto;
+		transition: all 0.3s;
+
+		.footer-buttons {
+			display: none;
+		}
+	}
+
+	&:hover, &:focus-within {
+		.fav, .more {
+			transform: translateY(0);
+		}
+
+		.date {
+			transform: translate(-50%, 0);
+		}
+
+		.play {
+			visibility: unset;
+			opacity: 1;
+			transform: translate(-50%, -50%) scale(1);
+		}
+
+		.image::after {
+			background-color: rgb(0 0 0 / 30%);
+		}
+	}
+
+	.date, .footer, .fav, .more {
+		background-color: var(--background-transparent);
+		color: var(--on-background-highlight);
+
+		a {
+			color: var(--on-background-highlight);
+		}
+	}
+
+	.fav {
+		&:hover {
+			color: var(--on-background);
+		}
+	}
+
+	.footer-subline {
+		display: block;
+		font-size: 0.8em;
+	}
+
+	@media (max-width: variables.$break-desktop-huge) {
+		width: calc((100% / 4) - 30px);
+	}
+
+	@media (max-width: variables.$break-desktop) {
+		width: calc((100% / 3) - 30px);
+	}
+
+	@media (max-width: variables.$break-phone) {
+		width: calc((100% / 2) - 30px);
+	}
+
+	@media (max-width: variables.$break-mobile) {
+		margin: variables.$margin-sm;
+
+		.footer {
+			font-size: 0.8em;
+		}
+	}
+}
+
+@mixin media-cards {
+	display: flex;
+	flex-flow: row wrap;
+
+	@media (max-width: variables.$break-pad) {
+		justify-content: space-around;
+	}
+}

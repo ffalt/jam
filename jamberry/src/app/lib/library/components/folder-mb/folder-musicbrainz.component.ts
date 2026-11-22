@@ -1,0 +1,48 @@
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
+import { NotifyService } from '@core/services/notify/notify.service';
+import { FolderType, type Jam, JamService } from '@jam';
+import { MbArtistComponent } from '../mb-artist/mb-artist.component';
+import { BackgroundTextComponent } from '@core/components/background-text/background-text.component';
+import { LoadingComponent } from '@core/components/loading/loading.component';
+import { MbAlbumComponent } from '../mb-album/mb-album.component';
+
+@Component({
+	selector: 'app-folder-musicbrainz',
+	templateUrl: './folder-musicbrainz.component.html',
+	styleUrls: ['./folder-musicbrainz.component.scss'],
+	imports: [MbArtistComponent, BackgroundTextComponent, LoadingComponent, MbAlbumComponent]
+})
+export class FolderMusicbrainzComponent {
+	readonly folder = signal<Jam.Folder | undefined>(undefined);
+	protected readonly FolderType = FolderType;
+	private id?: string;
+	private readonly jam = inject(JamService);
+	private readonly notify = inject(NotifyService);
+	private readonly route = inject(ActivatedRoute);
+	private readonly lifeRef = inject(DestroyRef);
+
+	constructor() {
+		this.route.paramMap
+			.pipe(takeUntilDestroyed(this.lifeRef))
+			.subscribe(paramMap => {
+				this.id = paramMap.get('id') ?? undefined;
+				this.refresh();
+			});
+	}
+
+	refresh(): void {
+		this.folder.set(undefined);
+		if (!this.id) {
+			return;
+		}
+		this.jam.folder.id({ id: this.id, folderIncTag: true })
+			.then(folder => {
+				this.folder.set(folder);
+			})
+			.catch((error: unknown) => {
+				this.notify.error(error);
+			});
+	}
+}

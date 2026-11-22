@@ -1,0 +1,3 @@
+@for (line of lines(); track $index) {
+	<div [title]="tooltips()?.[$index] || line">{{ line }}</div>
+}

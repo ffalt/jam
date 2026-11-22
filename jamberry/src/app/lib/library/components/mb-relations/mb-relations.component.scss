@@ -1,0 +1,75 @@
+@use "_scss/variables";
+@use "_scss/mixins/list";
+@use "_scss/mixins/table";
+
+:host {
+	.section {
+		margin-bottom: variables.$margin-lg;
+	}
+
+	.section-title {
+		text-transform: uppercase;
+		letter-spacing: 1.25px;
+		font-size: variables.$x-small * 1.2;
+		margin-bottom: variables.$margin-sm;
+		color: var(--on-control-ambient);
+	}
+
+	@include list.key-value-list;
+
+	.info-groups {
+		display: flex;
+		flex-direction: row;
+
+		@media (max-width: variables.$break-phone) {
+			flex-direction: column;
+		}
+
+		.info-group {
+			flex: 1;
+		}
+	}
+
+	.infos {
+		.info {
+			// display: flex;
+
+			.info-title {
+				color: var(--on-control-ambient);
+				font-size: variables.$x-small;
+				letter-spacing: 1.25px;
+			}
+
+			.info-value {
+				margin-left: variables.$margin;
+			}
+		}
+	}
+
+	.url-type {
+		font-size: variables.$small;
+		margin-bottom: variables.$margin-sm;
+
+		span {
+			text-transform: uppercase;
+			color: var(--on-background-highlight);
+		}
+	}
+
+	.releasegroups {
+		@include table.album-table;
+
+		.heading, .releasegroup {
+			@include table.album-table-row;
+		}
+
+		.heading {
+			@include table.album-table-header-row;
+		}
+
+		.releasegroup {
+			@include table.album-table-data-row;
+		}
+
+	}
+}

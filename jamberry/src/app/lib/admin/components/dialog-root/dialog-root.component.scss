@@ -1,0 +1,26 @@
+@use "_scss/variables";
+
+:host {
+	input[type="text"] {
+		width: 100%;
+		line-height: 1.3em;
+		padding: variables.$padding-xs;
+		min-width: 300px;
+	}
+
+	input[type="radio"] {
+		margin-right: variables.$margin-xs;
+	}
+
+	.root-form-control {
+		margin-bottom: 8px;
+		display: block;
+	}
+
+	.select {
+		margin-right: variables.$margin;
+		display: block;
+		font-size: 0.8em;
+		line-height: 1.5em;
+	}
+}

@@ -1,0 +1,27 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { TEST_IMPORTS, TEST_PROVIDERS } from '../../../../app.mock';
+import { FolderArtworkSearchImageComponent } from './folder-artwork-search-image.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('FolderArtworkSearchImageComponent', () => {
+	let component: FolderArtworkSearchImageComponent;
+	let fixture: ComponentFixture<FolderArtworkSearchImageComponent>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [...TEST_IMPORTS, FolderArtworkSearchImageComponent],
+			providers: [...TEST_PROVIDERS],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(FolderArtworkSearchImageComponent);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

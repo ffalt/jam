@@ -1,0 +1,5 @@
+@use "_scss/mixins/cards";
+
+:host {
+	@include cards.media-card;
+}

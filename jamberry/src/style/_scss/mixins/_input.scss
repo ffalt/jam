@@ -1,0 +1,99 @@
+@use "../variables";
+
+@mixin input-box-content {
+	border-radius: variables.$border-radius;
+	align-items: center;
+	background-color: var(--control-ambient);
+	border: 1px solid var(--control-box-border);
+	color: var(--on-control);
+
+	input {
+		flex: 1;
+		border: none;
+		min-width: 50px;
+		padding-left: variables.$border-radius-padding;
+		padding-right: variables.$border-radius-padding;
+		background-color: var(--control-ambient);
+		color: var(--on-control);
+		min-height: 28px;
+		border-radius: variables.$border-radius;
+	}
+
+	.icon {
+		color: var(--on-control);
+		font-size: variables.$small;
+		cursor: pointer;
+		padding-top: 4px;
+
+		&:hover {
+			color: var(--on-input-hover);
+		}
+	}
+
+	&:focus-within {
+		background-color: var(--input);
+		border-color: var(--input-border);
+		color: var(--on-input);
+
+		input {
+			background-color: var(--input);
+			color: var(--on-input);
+		}
+
+		.icon {
+			color: var(--on-input);
+		}
+	}
+}
+
+@mixin input-box {
+	.input-box {
+		border-radius: variables.$border-radius;
+		padding-left: variables.$border-radius-padding;
+		padding-right: variables.$border-radius-padding;
+
+		// display: flex;
+		align-items: center;
+		background-color: var(--control-ambient);
+		border: 1px solid var(--control-box-border);
+		color: var(--on-control);
+
+		input {
+			flex: 1;
+			border: none;
+			min-height: 28px;
+
+			// background-color: var(--input);
+		}
+
+		&:focus-within {
+			background-color: var(--input);
+			border-color: var(--input-border);
+			color: var(--on-input);
+		}
+
+		i.icon {
+			color: var(--on-input);
+			font-size: variables.$small;
+			cursor: pointer;
+
+			&:hover {
+				color: var(--on-input-hover);
+			}
+		}
+	}
+}
+
+@mixin input-box-large {
+	@include input-box;
+
+	.input-box {
+		width: 100%;
+		display: flex;
+		min-height: 30px;
+
+		input {
+			max-width: calc(100% - 24px);
+		}
+	}
+}

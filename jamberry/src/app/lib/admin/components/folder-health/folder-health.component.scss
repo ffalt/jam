@@ -1,0 +1,28 @@
+@use "_scss/variables";
+
+:host {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	display: block;
+
+	.icon-warning {
+		color: var(--accent);
+	}
+
+	.label {
+		padding-left: 28px;
+		font-size: 0.8em;
+		text-transform: uppercase;
+		min-width: 30%;
+		display: inline-block;
+	}
+
+	.hints {
+		padding-top: variables.$padding-sm;
+	}
+
+	.hint {
+		padding-bottom: variables.$padding-sm;
+	}
+}

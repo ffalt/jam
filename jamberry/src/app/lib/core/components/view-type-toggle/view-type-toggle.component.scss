@@ -1,0 +1,42 @@
+@use "_scss/variables";
+
+:host {
+	border-bottom: 1px solid var(--background-border);
+
+	.view-type {
+		min-height: 30px;
+		margin-top: variables.$margin-sm;
+		margin-bottom: variables.$margin-sm;
+
+		.section-title {
+			text-transform: uppercase;
+			letter-spacing: 1.25px;
+			font-size: variables.$x-small * 1.2;
+			margin-top: variables.$margin-sm;
+			color: var(--on-control-ambient);
+		}
+
+		.buttons {
+			float: right;
+
+			a {
+				padding: 8px;
+				border-radius: 50%;
+				font-size: 0.6em;
+				margin-left: 2px;
+				color: var(--on-background);
+				user-select: none;
+
+				&:hover {
+					background-color: var(--background-hover);
+					color: var(--on-background-hover);
+				}
+
+				&.active {
+					background-color: var(--background-active);
+					color: var(--on-background-active);
+				}
+			}
+		}
+	}
+}

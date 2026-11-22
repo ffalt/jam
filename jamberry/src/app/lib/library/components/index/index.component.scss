@@ -1,0 +1,34 @@
+@use "_scss/variables";
+@use "_scss/mixins/table";
+@use "_scss/mixins/icons";
+
+:host {
+	.index-entries {
+		@include table.flex-table;
+
+		.index-entry {
+			@include table.flex-table-row;
+			@include table.flex-table-data-row;
+		}
+	}
+
+	.index-group-name {
+		@include table.flex-table-row;
+
+		user-select: none;
+
+		&::after {
+			@include icons.icon-chevron-down;
+
+			margin-left: 4px;
+		}
+
+		&.expanded::after {
+			@include icons.icon-chevron-up;
+		}
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+	}
+}

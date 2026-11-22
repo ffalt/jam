@@ -1,0 +1,20 @@
+@use "_scss/variables";
+
+:host {
+	.more {
+		width: 100%;
+		text-align: center;
+		padding: variables.$padding;
+		margin-top: variables.$margin;
+		margin-bottom: variables.$margin;
+		cursor: pointer;
+		user-select: none;
+		font-size: 0.9em;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+
+		&:hover {
+			background-color: var(--background-hover);
+		}
+	}
+}

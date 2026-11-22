@@ -1,0 +1,15 @@
+@use "_scss/variables";
+
+:host {
+	text-align: center;
+	display: block;
+	min-width: 160px;
+	font-size: 110px;
+	color: var(--on-control-hover);
+
+	@media (max-width: variables.$break-phone) {
+		text-align: center;
+		min-width: 60px;
+		font-size: 60px;
+	}
+}

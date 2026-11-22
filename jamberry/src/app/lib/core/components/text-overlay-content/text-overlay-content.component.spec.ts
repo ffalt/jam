@@ -1,0 +1,25 @@
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { TextOverlayContentComponent } from './text-overlay-content.component';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+describe('TextOverlayContentComponent', () => {
+	let component: TextOverlayContentComponent;
+	let fixture: ComponentFixture<TextOverlayContentComponent>;
+
+	beforeEach(async () =>
+		TestBed.configureTestingModule({
+			imports: [TextOverlayContentComponent],
+			teardown: { destroyAfterEach: false }
+		}).compileComponents()
+	);
+
+	beforeEach(() => {
+		fixture = TestBed.createComponent(TextOverlayContentComponent);
+		component = fixture.componentInstance;
+		fixture.detectChanges();
+	});
+
+	it('should create', () => {
+		expect(component).toBeTruthy();
+	});
+});

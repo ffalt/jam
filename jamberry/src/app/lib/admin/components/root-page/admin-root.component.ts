@@ -1,0 +1,71 @@
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { type Jam, RootScanStrategy } from '@jam';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DialogOverlayService } from '@modules/dialog-overlay';
+import { DialogRootComponent } from '../dialog-root/dialog-root.component';
+import { RootListComponent } from '../root-list/root-list.component';
+import { HeaderSlimComponent } from '@core/components/header-slim/header-slim.component';
+import { AdminRootService, type AdminRootServiceEditData } from '@core/services/admin-root/admin-root.service';
+import { NotifyService } from '@core/services/notify/notify.service';
+import { IconPlusComponent } from '@core/components/icons/icon-plus.component';
+import { IconReloadComponent } from '@core/components/icons/icon-reload.component';
+import { IconRescanComponent } from '@core/components/icons/icon-rescan.component';
+
+@Component({
+	selector: 'app-admin-root',
+	templateUrl: './admin-root.component.html',
+	styleUrls: ['./admin-root.component.scss'],
+	imports: [HeaderSlimComponent, IconPlusComponent, IconReloadComponent, IconRescanComponent, RootListComponent, RouterModule]
+})
+export class AdminRootComponent {
+	readonly roots = signal<Array<Jam.Root> | undefined>(undefined);
+	private readonly lifeRef = inject(DestroyRef);
+	private readonly notify = inject(NotifyService);
+	private readonly rootService = inject(AdminRootService);
+	private readonly dialogOverlay = inject(DialogOverlayService);
+
+	constructor() {
+		this.rootService.rootsChange
+			.pipe(takeUntilDestroyed(this.lifeRef))
+			.subscribe({
+				next: roots => {
+					this.roots.set(roots.toSorted((a, b) => a.name.localeCompare(b.name)));
+				},
+				error: (error: unknown) => {
+					this.notify.error(error);
+				}
+			});
+		this.rootService.refreshRoots();
+	}
+
+	refresh(): void {
+		this.rootService.refreshRoots();
+	}
+
+	newRoot(): void {
+		const edit: AdminRootServiceEditData = {
+			name: '',
+			path: '',
+			strategy: RootScanStrategy.auto
+		};
+		this.dialogOverlay.open<AdminRootServiceEditData>({
+			childComponent: DialogRootComponent,
+			title: 'New Root',
+			data: edit,
+			onOkBtn: async () => {
+				try {
+					await this.rootService.applyDialogRoot(edit);
+				} catch (error) {
+					this.notify.error(error);
+					return Promise.reject(error);
+				}
+			},
+			onCancelBtn: async () => Promise.resolve()
+		});
+	}
+
+	refreshRoots(): void {
+		this.rootService.rescanRoots();
+	}
+}

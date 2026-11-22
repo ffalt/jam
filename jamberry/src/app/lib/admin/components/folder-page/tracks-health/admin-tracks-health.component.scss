@@ -1,0 +1,38 @@
+@use "_scss/variables";
+@use "_scss/mixins/button";
+
+:host {
+	height: 100%;
+	width: 100%;
+
+	.health {
+		height: 100%;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+
+		.actions {
+			@include button.action-buttons;
+		}
+
+		.content {
+			padding: variables.$padding;
+			overflow: auto;
+		}
+
+		.track {
+			flex-flow: row nowrap;
+
+			.meta {
+				width: 30%;
+				overflow: hidden;
+				padding-right: variables.$padding;
+				text-overflow: ellipsis;
+			}
+
+			.track-health {
+				width: 70%;
+			}
+		}
+	}
+}

@@ -1,0 +1,33 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+
+:host {
+	@include view.view-content;
+
+	.overview {
+		display: flex;
+		flex-flow: row wrap;
+
+		.info {
+			width: 100%;
+		}
+
+		@media (max-width: variables.$break-pad) {
+			.info {
+				padding-right: 0;
+			}
+		}
+
+		.album-tracks {
+			margin-top: variables.$margin;
+			width: 100%;
+
+			.head {
+				display: flex;
+				flex-flow: row wrap;
+				justify-content: space-between;
+				align-items: center;
+			}
+		}
+	}
+}

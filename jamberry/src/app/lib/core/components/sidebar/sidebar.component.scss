@@ -1,0 +1,35 @@
+@use "_scss/variables";
+
+:host {
+	display: flex;
+	flex-flow: column wrap;
+	margin-bottom: variables.$margin;
+	height: 100%;
+	padding: 1px;
+
+	.navigation {
+		padding: variables.$padding;
+		flex-grow: 1;
+		width: 100%;
+		overflow: hidden auto;
+		background-color: var(--background-sidebar);
+		color: var(--on-control);
+	}
+
+	@media (max-width: variables.$break-pad) {
+		display: none;
+
+		.navigation {
+			position: fixed;
+			z-index: 10;
+			flex: unset;
+			max-height: calc(100% - 60px);
+			flex-flow: row wrap;
+			border-bottom: 1px solid var(--control-box-border);
+		}
+
+		&.show {
+			display: flex;
+		}
+	}
+}

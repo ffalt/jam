@@ -1,0 +1,37 @@
+@use "_scss/variables";
+@use "_scss/mixins/view";
+
+:host {
+	.user {
+		@include view.view-host;
+
+		.content {
+			@include view.view-content;
+
+			padding: variables.$padding variables.$padding variables.$padding-xl;
+
+			.section {
+				padding-bottom: variables.$padding-lg;
+			}
+
+			.row {
+				display: flex;
+				flex-direction: row;
+				gap: variables.$padding-xs;
+
+				app-icon-checkmark {
+					margin-right: 8px;
+					vertical-align: top;
+				}
+
+				.roles div {
+					margin-bottom: 4px;
+				}
+
+				@media (max-width: variables.$break-mobile) {
+					flex-direction: column;
+				}
+			}
+		}
+	}
+}

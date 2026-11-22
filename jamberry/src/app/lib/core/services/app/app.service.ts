@@ -1,0 +1,27 @@
+import { Service } from '@angular/core';
+import { Settings } from '../../../../app.settings';
+import { environment } from '../../../../../environments/environment';
+
+export interface SidebarProvider {
+	toggleMobileNavig(): void;
+}
+
+@Service()
+export class AppService {
+	name: string = 'Jam';
+	version: string;
+	standalone: boolean = false;
+	smallscreen: boolean = false;
+	settings: Settings = new Settings();
+	view: {
+		currentSidebar?: SidebarProvider;
+		showQueue: false;
+	} = {
+		currentSidebar: undefined,
+		showQueue: false
+	};
+
+	constructor() {
+		this.version = environment.version;
+	}
+}
