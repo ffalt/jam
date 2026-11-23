@@ -14,6 +14,7 @@ workflows:
     '.github/workflows/jamberry.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
+        - 'qltysh/qlty-action@v2.7.0'
     '.github/workflows/jamserve.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-node@v7.1.0'
