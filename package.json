@@ -1,0 +1,70 @@
+{
+  "name": "jam",
+  "version": "0.7.0",
+  "author": "ffalt",
+  "license": "MIT",
+  "description": "jam monorepo: jamserve audio server, jamberry web client and the ffalt/jam docker image",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ffalt/jam.git"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "postinstall": "npm install --prefix jamserve && npm install --prefix jamberry",
+    "install:all": "npm ci --prefix jamserve && npm ci --prefix jamberry",
+    "build": "npm run build --prefix jamserve && npm run build --prefix jamberry",
+    "build:deploy": "npm run build:deploy --prefix jamserve && npm run build:deploy --prefix jamberry",
+    "test": "npm test --prefix jamserve && npm test --prefix jamberry",
+    "lint": "npm run lint --prefix jamserve && npm run lint --prefix jamberry",
+    "docker:build": "docker build -f docker/jam/Dockerfile -t ffalt/jam .",
+    "docker:build:test": "docker build -t ffalt/jam-test docker/test",
+    "release": "commit-and-tag-version -a",
+    "release:dry": "commit-and-tag-version -a --dry-run",
+    "releaselog": "node .github/scripts/extract-release.mjs"
+  },
+  "commit-and-tag-version": {
+    "header": "# Changelog\n\nAll notable changes to this project will be documented in this file.",
+    "packageFiles": [
+      {
+        "filename": "package.json",
+        "type": "json"
+      }
+    ],
+    "bumpFiles": [
+      {
+        "filename": "package.json",
+        "type": "json"
+      },
+      {
+        "filename": "package-lock.json",
+        "type": "json"
+      },
+      {
+        "filename": "jamserve/package.json",
+        "type": "json"
+      },
+      {
+        "filename": "jamserve/package-lock.json",
+        "type": "json"
+      },
+      {
+        "filename": "jamberry/package.json",
+        "type": "json"
+      },
+      {
+        "filename": "jamberry/package-lock.json",
+        "type": "json"
+      }
+    ],
+    "scripts": {
+      "postbump": "cd jamberry && node ./build-pre.mjs && git add ./src/environments/version.ts"
+    }
+  },
+  "devDependencies": {
+    "commit-and-tag-version": "13.3.0"
+  }
+}

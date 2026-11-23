@@ -1,27 +1,25 @@
-ARG JAMSERVE_VERSION=v0.6.22
-ARG JAMBERRY_VERSION=v0.6.22
+# build context is the repo root: docker build -f docker/jam/Dockerfile .
+ARG JAM_VERSION=dev
 
-# download stage - curl & unzip are needed only here and are discarded with this stage
-FROM node:26-trixie-slim AS downloader
+# build stages - the output (js, html, css) is platform independent, so they run on the build platform
+# and the multi platform build does not need to emulate the angular & typescript compilers
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        ca-certificates curl unzip \
-    && rm -rf /var/lib/apt/lists/*
+# jamserve: dist, static & production package.json/package-lock.json in jamserve/deploy
+FROM --platform=$BUILDPLATFORM node:26-trixie-slim AS serve-build
+WORKDIR /src/jamserve
+COPY jamserve/package.json jamserve/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
+COPY jamserve/ ./
+# deploy.ts runs `npm i` only to create the production package-lock.json, native modules are not needed here
+RUN --mount=type=cache,target=/root/.npm npm_config_ignore_scripts=true npm run build:deploy
 
-ARG JAMSERVE_VERSION
-ARG JAMBERRY_VERSION
-
-# get jamserve & jamberry
-# no integrity check: a checksum published beside the zip adds nothing, as the same compromise
-# replaces both. verify with `gh attestation verify` once the releases publish attestations.
-RUN mkdir -p /jam \
-    && curl --fail -L -o /tmp/serve.zip https://github.com/ffalt/jamserve/releases/download/${JAMSERVE_VERSION}/jamserve-release.zip \
-    && unzip /tmp/serve.zip -d /jam/serve \
-    && rm /tmp/serve.zip \
-    && curl --fail -L -o /tmp/berry.zip https://github.com/ffalt/jamberry/releases/download/${JAMBERRY_VERSION}/jamberry-release.zip \
-    && unzip /tmp/berry.zip -d /jam/berry \
-    && rm /tmp/berry.zip
+# jamberry: angular production build in jamberry/dist
+FROM --platform=$BUILDPLATFORM node:26-trixie-slim AS berry-build
+WORKDIR /src/jamberry
+COPY jamberry/package.json jamberry/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY jamberry/ ./
+RUN npm run build:deploy
 
 FROM node:26-trixie-slim AS base
 
@@ -36,19 +34,18 @@ RUN apt-get update \
     && chown -R node:node /home/node/jam/logs /home/node/jam/data
 
 # copy startup script
-COPY ./static/start.sh /home/node/start.sh
+COPY docker/jam/static/start.sh /home/node/start.sh
 
-ARG JAMSERVE_VERSION
-ARG JAMBERRY_VERSION
-ENV JAMSERVE_VERSION=${JAMSERVE_VERSION}
-ENV JAMBERRY_VERSION=${JAMBERRY_VERSION}
+ARG JAM_VERSION
+ENV JAMSERVE_VERSION=${JAM_VERSION}
+ENV JAMBERRY_VERSION=${JAM_VERSION}
 
-# copy jamserve & jamberry from the download stage
-COPY --from=downloader /jam/serve /home/node/jam/serve
-COPY --from=downloader /jam/berry /home/node/jam/berry
+# copy jamserve & jamberry from the build stages
+COPY --from=serve-build /src/jamserve/deploy /home/node/jam/serve
+COPY --from=berry-build /src/jamberry/dist /home/node/jam/berry
 
 # copy jamserve default config
-COPY ./static/.env /home/node/jam/serve/.env
+COPY docker/jam/static/.env /home/node/jam/serve/.env
 
 ENV NODE_ENV=production
 WORKDIR /home/node/jam/serve

@@ -1,9 +1,14 @@
 {
   "name": "jamberry",
-  "version": "0.6.27",
+  "version": "0.7.0",
   "author": "ffalt",
   "license": "MIT",
-  "description": "a html5 jamserve web player",
+  "description": "a html5 JamServe web player",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ffalt/jam.git",
+    "directory": "jamberry"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -19,10 +24,7 @@
     "lint:css": "stylelint \"**/*.css\"",
     "clean": "rimraf dist",
     "i18n:export": "ng extract-i18n --output-path src/locale",
-    "release": "npx commit-and-tag-version -a",
     "update:angular": "ng update @angular/cli @angular/core",
-    "build:changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
-    "build:releaselog": "node .github/scripts/extract-release.mjs",
     "build:prebuild": "npm run clean && npm run build:version",
     "build:version": "node ./build-pre.mjs",
     "build:stats": "ng build --named-chunks --configuration production --stats-json --output-hashing=none",
@@ -35,11 +37,6 @@
     "node": ">=26"
   },
   "private": true,
-  "commit-and-tag-version": {
-    "scripts": {
-      "postbump": "node ./build-pre.mjs && git add ./src/environments/version.ts"
-    }
-  },
   "overrides": {
     "minimatch": "11.0.9",
     "glob": "14.0.6"

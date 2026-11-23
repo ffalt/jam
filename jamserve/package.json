@@ -1,14 +1,15 @@
 {
   "name": "jamserve",
-  "version": "0.6.27",
+  "version": "0.7.0",
   "author": "ffalt",
   "license": "MIT",
-  "description": "jamserve streaming audio server",
+  "description": "JamServe streaming audio server",
   "private": true,
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ffalt/jamserve.git"
+    "url": "https://github.com/ffalt/jam.git",
+    "directory": "jamserve"
   },
   "engines": {
     "node": ">=26"
@@ -25,11 +26,7 @@
     "clean": "rimraf dist",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
     "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
-    "release": "npx commit-and-tag-version",
-    "changelog:start": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
-    "releaselog": "node .github/scripts/extract-release.mjs"
+    "coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage"
   },
   "overrides": {
     "@graphql-tools/utils": "12.0.2",

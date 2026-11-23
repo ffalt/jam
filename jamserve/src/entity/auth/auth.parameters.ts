@@ -9,7 +9,7 @@ export class CredentialsParameters {
 	@ObjectField({ description: 'User name', example: 'you' })
 	username!: string;
 
-	@ObjectField({ description: 'User client', example: 'Jamberry v1' })
+	@ObjectField({ description: 'User client', example: 'JamBerry v1' })
 	client!: string;
 
 	@ObjectField({ nullable: true, description: 'Generate JSON Web Token', example: true })

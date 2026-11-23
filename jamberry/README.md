@@ -1,26 +1,16 @@
-# Jamberry
+# JamBerry development
 
-html5 web frontend for [jamserve](https://github.com/ffalt/jamserve)
+See the [root README](../README.md) for installation and server configuration. Run the following commands from `jamberry/` after installing dependencies.
 
-![test](https://github.com/ffalt/jamberry/workflows/test/badge.svg)
-[![Maintainability](https://qlty.sh/gh/ffalt/projects/jamberry/maintainability.svg)](https://qlty.sh/gh/ffalt/projects/jamberry)
+| Command | Purpose |
+| --- | --- |
+| `npm start` | Start the development server at `http://localhost:4200/` with automatic reload |
+| `npm run build` | Build into `dist/` |
+| `npm run build:prod` | Build in production mode into `dist/` |
+| `npm run clean` | Remove `dist/` |
+| `npm test` | Run unit tests with Vitest |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Generate a test coverage report |
+| `npm run lint` | Run the Angular and ESLint checks |
 
-## Development server
-
-Run `npm run start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
-
-## Build
-
-Run `npm run build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Build Production
-
-Run `npm run build:prod` to build the project in production mode. The build artifacts will be stored in the `dist/` directory.
-
-## Clean
-
-Run `npm run clean` to clean out the `dist/` directory.
-
-## Running unit tests
-
-Run `npm run test` to execute the unit tests via vitest.
+The development server proxies API requests to JamServe at `http://localhost:4040/`; start the server separately. Its development configuration supplies the `admin`/`admin` credentials, so update `proxy.conf.mjs` if your local credentials differ.

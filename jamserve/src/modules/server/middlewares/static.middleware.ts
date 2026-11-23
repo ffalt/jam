@@ -21,7 +21,7 @@ export function staticMiddleware(configService: ConfigService): express.Router {
 		connectSrc: [CSP.self, CSP.https, CSP.wss]
 	}));
 
-	// frontend (jamberry domain config file)
+	// frontend (JamBerry domain config file)
 	const jamberry_config = `document.jamberry_config = ${JSON.stringify({ name: 'Jam', fixed: { server: configService.env.domain } })}`;
 	router.get('/assets/config/config.js', (_req, res) => {
 		res.type('text/javascript');
