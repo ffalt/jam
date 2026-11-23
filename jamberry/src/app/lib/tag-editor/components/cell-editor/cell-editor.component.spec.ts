@@ -46,7 +46,7 @@ describe('CellEditorComponent', () => {
 
 		const display = fixture.nativeElement.querySelector(':scope app-cell-editor-display div') as HTMLElement;
 		expect(display.textContent).toBe('20 synced lines');
-		expect(display.title.split('\n').length).toBe(16);
+		expect(display.title.split('\n')).toHaveLength(16);
 	});
 
 	it('opens a synced lyrics dialog when the synced lyrics cell is clicked', async () => {

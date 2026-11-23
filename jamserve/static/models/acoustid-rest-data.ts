@@ -72,4 +72,5 @@ export declare namespace Acoustid {
 		status: string;
 		results: Array<Result>;
 	}
+
 }

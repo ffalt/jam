@@ -229,14 +229,14 @@ export default ts.config(
 				createDefaultProgram: true
 			}
 		},
-		plugins: {vitest},
 		extends: [
 			eslint.configs.recommended,
 			...ts.configs.recommended,
 			...ts.configs.stylistic,
 			...angular.configs.tsRecommended,
 			stylistic.configs.recommended,
-			unicorn.configs.recommended
+			unicorn.configs.recommended,
+			vitest.configs.recommended
 		],
 		rules: {
 			...commonRules,

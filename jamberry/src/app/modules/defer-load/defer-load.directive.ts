@@ -95,7 +95,7 @@ export class DeferLoadDirective implements AfterViewInit, OnDestroy {
 	};
 
 	private checkIfIntersecting(entry: IntersectionObserverEntry): boolean {
-		// For Samsung native browser, IO has been partially implemented where by the
+		// For Samsung native browser, IO has been partially implemented whereby the
 		// callback fires, but entry object is empty. We will check manually.
 		return entry.time ? entry.isIntersecting : this.isVisible();
 	}

@@ -1,4 +1,4 @@
-window.addEventListener('load', function (event) {
+window.addEventListener('load', function (_) {
 	GraphQLPlayground.init(document.getElementById('root'), {
 		"endpoint": "/graphql",
 		"subscriptionEndpoint": "/graphql",

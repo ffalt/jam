@@ -148,9 +148,6 @@ export default ts.config(
 				jsx: false
 			})
 		],
-		plugins: {
-			jest
-		},
 		languageOptions: {
 			globals: jest.environments.globals.globals,
 			parserOptions: {

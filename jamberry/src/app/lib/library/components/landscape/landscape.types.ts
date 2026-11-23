@@ -1,12 +1,14 @@
-import type { Jam } from '@jam';
+import { Jam } from '@jam';
+import LandscapeGenreNode = Jam.LandscapeGenreNode;
+import LandscapeArtistNode = Jam.LandscapeArtistNode;
 
-export interface LandscapeGenreRenderNode extends Jam.LandscapeGenreNode {
+export interface LandscapeGenreRenderNode extends LandscapeGenreNode {
 	kind: 'genre';
 	color: string;
 	normalizedName: string;
 }
 
-export interface LandscapeArtistRenderNode extends Jam.LandscapeArtistNode {
+export interface LandscapeArtistRenderNode extends LandscapeArtistNode {
 	kind: 'artist';
 	color: string;
 	normalizedName: string;

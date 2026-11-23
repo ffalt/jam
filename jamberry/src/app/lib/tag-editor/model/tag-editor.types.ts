@@ -103,6 +103,7 @@ export const DefaultFrameColumns: Array<{ id: string; subid?: string; width: num
 	{ id: 'MCDI', width: 40 },
 	{ id: 'TXXX', subid: 'Acoustid Id', width: 40 },
 	{ id: 'TXXX', subid: 'ASIN', width: 100 },
+	// noinspection HttpUrlsUsage
 	// eslint-disable-next-line unicorn/prefer-https
 	{ id: 'UFID', subid: 'http://musicbrainz.org', width: 80 },
 	{ id: 'TXXX', subid: 'MusicBrainz Release Track Id', width: 80 },
@@ -127,6 +128,7 @@ export const DefaultFrameColumns: Array<{ id: string; subid?: string; width: num
 	{ id: 'TXXX', subid: 'ASIN', width: 110 },
 	{ id: 'TSRC', width: 110 },
 	{ id: 'TXXX', subid: 'BARCODE', width: 110 },
+	// noinspection HttpUrlsUsage
 	// eslint-disable-next-line unicorn/prefer-https
 	{ id: 'PRIV', subid: 'http://www.cdtag.com', width: 100 },
 	{ id: 'TXXX', subid: 'CATALOGNUMBER', width: 110 },

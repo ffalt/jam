@@ -54,7 +54,7 @@ export class DiscogsClient extends WebserviceClient {
 			log.error(`Discogs request failed: ${response.status} ${response.statusText}`);
 			return undefined;
 		}
-		return response.json() as Promise<T>;
+		return await response.json() as Promise<T>;
 	}
 
 	private async doSearch(parameters: Record<string, string>): Promise<Discogs.SearchResponse | undefined> {
@@ -71,7 +71,7 @@ export class DiscogsClient extends WebserviceClient {
 			log.error(`Discogs search failed: ${response.status} ${response.statusText}`);
 			return undefined;
 		}
-		return response.json() as Promise<Discogs.SearchResponse>;
+		return await response.json() as Promise<Discogs.SearchResponse>;
 	}
 
 	async searchRelease(parameters: DiscogsReleaseSearchParameters): Promise<Discogs.SearchResponse | undefined> {

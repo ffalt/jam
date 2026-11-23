@@ -1,6 +1,7 @@
 // CoverArtArchive API Version 1.0
 
 export declare namespace CoverArtArchive {
+
 	export interface Response {
 		images?: Array<Image>;
 		release?: string;

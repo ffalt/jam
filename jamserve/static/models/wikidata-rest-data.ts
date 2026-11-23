@@ -28,9 +28,7 @@ export declare namespace WikiData {
 		rank: string;
 		references: Array<{
 			hash: string;
-			snaks: {
-				[name: string]: Array<Snak>;
-			};
+			snaks: Record<string, Array<Snak>>;
 			snakorder: Array<string>;
 		}>;
 	}
@@ -38,35 +36,15 @@ export declare namespace WikiData {
 	export interface Entity {
 		type: string;
 		id: string;
-		labels: {
-			[language: string]: {
-				language: string;
-				value: string;
-			};
-		};
-		aliases: {
-			[language: string]: {
-				language: string;
-				value: string;
-			};
-		};
-		descriptions: {
-			[language: string]: {
-				language: string;
-				value: string;
-			};
-		};
-		sitelinks: {
-			[name: string]: SiteLink;
-		};
-		claims: {
-			[name: string]: Array<Claim>;
-		};
+		labels: Record<string, { language: string; value: string } | undefined>;
+		aliases: Record<string, { language: string; value: string } | undefined>;
+		descriptions: Record<string, { language: string; value: string } | undefined>;
+		sitelinks?: Record<string, SiteLink | undefined>;
+		claims: Record<string, Array<Claim | undefined>>;
 	}
 
 	export interface Response {
-		entities: {
-			[id: string]: Entity;
-		};
+		entities: Record<string, Entity>;
 	}
+
 }

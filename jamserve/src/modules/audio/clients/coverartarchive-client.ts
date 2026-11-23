@@ -27,7 +27,7 @@ export class CoverArtArchiveClient extends WebserviceJSONClient<JSONRequest, Cov
 
 	protected async processError(error: unknown, req: JSONRequest): Promise<CoverArtArchive.Response> {
 		if (error instanceof SyntaxError) {
-			// coverartarchive response may be code 200 with html on empty data
+			// coverartarchive response may be code 200 with HTML on empty data
 			// <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 			// <title>404 Not Found</title>
 			// <h1>Not Found</h1>

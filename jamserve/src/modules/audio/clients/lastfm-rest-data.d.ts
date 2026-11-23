@@ -119,11 +119,12 @@ export declare namespace LastFM {
 		artist: string;
 	}
 
-	interface Result {
+	export interface Result {
 		similartracks?: SimilarTracks;
 		toptracks?: TopTracks;
 		artist?: Artist;
 		album?: Album;
 		track?: Track;
+		error?: string;
 	}
 }

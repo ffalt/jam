@@ -21,10 +21,6 @@
 
 	@include list.key-value-list;
 
-	.country-selector {
-		margin-bottom: variables.$margin-sm;
-	}
-
 	.discogs-images {
 		display: flex;
 		flex-wrap: wrap;

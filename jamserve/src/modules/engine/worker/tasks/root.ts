@@ -345,15 +345,6 @@ export class RootWorker extends BaseWorker {
 		return node;
 	}
 
-	private logNode(node?: MergeNode): Array<string> {
-		let stat = [`${' '.repeat(node?.folder.level ?? 0)}${node?.changed ? '** ' : '|- '}${node?.folder.path}`];
-		const children = node?.children ?? [];
-		for (const n of children) {
-			stat = [...stat, ...this.logNode(n)];
-		}
-		return stat;
-	}
-
 	private static async buildMergeTracks(folder: Folder): Promise<Array<OnDemandTrackMatch>> {
 		const tracks = await folder.tracks.getItems();
 		const list: Array<OnDemandTrackMatch> = Array.from(tracks, track => new ObjLoadTrackMatch(track));

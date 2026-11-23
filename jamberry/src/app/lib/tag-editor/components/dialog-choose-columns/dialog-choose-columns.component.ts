@@ -19,6 +19,7 @@ export interface SelectColumn {
 	checked: boolean;
 }
 
+// noinspection HttpUrlsUsage
 @Component({
 	selector: 'app-dialog-choose-columns',
 	templateUrl: './dialog-choose-columns.component.html',

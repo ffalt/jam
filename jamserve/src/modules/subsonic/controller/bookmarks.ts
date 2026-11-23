@@ -66,7 +66,7 @@ export class SubsonicBookmarkApi {
 	/**
 	Returns the state of the play queue for this user (as set by savePlayQueue).
 	This includes the tracks in the play queue, the currently playing track, and the position within this track.
-	Typically used to allow a user to move between different clients/apps while retaining the same play queue (for instance when listening to an audio book).
+	Typically used to allow a user to move between different clients/apps while retaining the same play queue (for instance when listening to an audiobook).
 	Since 1.12.0
 	*/
 	@SubsonicRoute('/getPlayQueue', () => SubsonicResponsePlayQueue, { summary: 'Get Play Queue', description: 'Returns the state of the play queue for this user (as set by savePlayQueue).', tags: ['PlayQueue'] })
@@ -87,7 +87,7 @@ export class SubsonicBookmarkApi {
 	/**
 	Saves the state of the play queue for this user. This includes the tracks in the play queue,
 	the currently playing track, and the position within this track. Typically used to allow a user to move between different clients/apps
-	while retaining the same play queue (for instance when listening to an audio book).
+	while retaining the same play queue (for instance when listening to an audiobook).
 	Since 1.12.0
 	*/
 	@SubsonicRoute('/savePlayQueue', () => SubsonicOKResponse, { summary: 'Save Play Queue', description: 'Returns the state of the play queue for this user (as set by savePlayQueue).', tags: ['PlayQueue'] })

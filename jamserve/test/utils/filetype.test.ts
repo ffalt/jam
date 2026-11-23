@@ -21,7 +21,7 @@ describe('filetype functions and constants', () => {
 		});
 
 		test('should contain unexpected image formats', () => {
-			// gif should not be in write formats
+			// GIF should not be in write formats
 			expect(SupportedWriteImageFormat).not.toContain('gif');
 		});
 	});

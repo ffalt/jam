@@ -90,8 +90,6 @@ export class RateLimiter {
 	haven't spent too many tokens in this interval already, this will return
 	true. Otherwise, false is returned.
 	@param {Number} count The number of tokens to remove.
-	@param {Boolean} True if the tokens were successfully removed, otherwise
-	 false.
 	*/
 	tryRemoveTokens(count: number): boolean {
 		// Make sure the request isn't for more than we can handle

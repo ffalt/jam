@@ -7,7 +7,6 @@
 	overflow: hidden;
 	display: flex;
 	cursor: pointer;
-	tab-index: 0;
 
 	&::before {
 		content: "";
@@ -79,10 +78,6 @@
 		overflow: hidden;
 		height: auto;
 		transition: all 0.3s;
-
-		.footer-buttons {
-			display: none;
-		}
 	}
 
 	&:hover, &:focus-within {

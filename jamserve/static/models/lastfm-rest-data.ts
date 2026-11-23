@@ -93,7 +93,7 @@ export declare namespace LastFM {
 		streamable: string;
 		ontour: string;
 		stats?: Stats;
-		tags?: Array<Tag>;
+		tags: Array<Tag>;
 		bio?: Biography;
 		similar?: SimilarArtists;
 	}

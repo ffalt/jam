@@ -1,5 +1,5 @@
 declare module 'archiver' {
-	import type { Transform, TransformOptions } from 'node:stream';
+	import { Transform, TransformOptions } from 'node:stream';
 	import type { ZlibOptions } from 'node:zlib';
 
 	export interface ArchiverOptions extends TransformOptions {
