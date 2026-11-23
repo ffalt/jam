@@ -1,0 +1,149 @@
+config_version = "0"
+
+exclude_patterns = [
+    "*_min.*", "*-min.*", "*.min.*", "**/.yarn/**", "**/*.d.ts",
+    "**/assets/**", "**/bower_components/**", "**/build/**", "**/cache/**",
+    "**/config/**", "**/db/**", "**/deps/**", "**/dist/**", "**/extern/**",
+    "**/external/**", "**/generated/**", "**/Godeps/**", "**/gradlew/**",
+    "**/mvnw/**", "**/node_modules/**", "**/protos/**", "**/seed/**",
+    "**/target/**", "**/templates/**", "**/testdata/**", "**/vendor/**",
+    "jamserve/**/local/**", "jamserve/**/static/**", "jamserve/**/deploy/**",
+    "jamserve/**/data/**", "jamberry/src/app/modules/jam/model/jam-rest-params.ts",
+]
+
+test_patterns = [
+    "**/test/**", "**/spec/**", "**/*.test.*", "**/*.spec.*",
+    "**/*_test.*", "**/*_spec.*", "**/test_*.*", "**/spec_*.*",
+]
+
+[smells]
+mode = "comment"
+
+[[source]]
+name = "default"
+default = true
+
+[[plugin]]
+name = "actionlint"
+
+[[plugin]]
+name = "checkov"
+
+[[plugin]]
+name = "eslint"
+prefix = "jamberry"
+version = "10.15.0"
+package_file = "package.json"
+package_filters = ["eslint", "jest"]
+
+[[plugin]]
+name = "eslint"
+prefix = "jamserve"
+version = "10.15.0"
+package_file = "package.json"
+package_filters = ["eslint", "jest"]
+
+[[plugin]]
+name = "markdownlint"
+mode = "comment"
+
+[[plugin]]
+name = "osv-scanner"
+
+[[plugin]]
+name = "radarlint-js"
+
+[[plugin]]
+name = "ripgrep"
+mode = "comment"
+
+[[plugin]]
+name = "trufflehog"
+
+[[plugin]]
+name = "yamllint"
+
+[[plugin]]
+name = "biome"
+
+[[plugin]]
+name = "oxc"
+prefix = "jamberry"
+
+[[plugin]]
+name = "zizmor"
+prefix = "jamserve"
+
+[[triage]]
+match.file_patterns = ["jamberry/**"]
+match.rules = [
+    "yamllint:quoted-strings", "ripgrep:TODO", "biome:fmt",
+    "biome:lint/complexity/noThisInStatic", "biome:lint/suspicious/noEmptyInterface",
+    "biome:lint/complexity/noStaticOnlyClass", "biome:lint/style/useEnumInitializers",
+    "biome:lint/suspicious/noExplicitAny", "biome:lint/style/useExponentiationOperator",
+    "biome:lint/a11y/useGenericFontNames", "biome:lint/style/noInferrableTypes",
+    "biome:lint/style/noNonNullAssertion", "biome:lint/correctness/noInvalidUseBeforeDeclaration",
+    "markdownlint:MD013", "markdownlint:MD024", "radarlint-js:typescript:S4325",
+    "radarlint-js:typescript:S6671", "radarlint-js:typescript:S4335",
+    "radarlint-js:typescript:S6564", "radarlint-js:typescript:S3626",
+    "radarlint-js:typescript:S1135", "radarlint-js:typescript:S5843",
+]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamberry/**/jam.*.service.ts"]
+match.rules = ["radarlint-js:typescript:S4624"]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamberry/**/*.spec.ts"]
+match.rules = ["biome:lint/suspicious/noDuplicateTestHooks"]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamberry/CHANGELOG.md"]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamserve/**"]
+match.rules = [
+    "zizmor:zizmor/unpinned-uses", "checkov:CKV_OPENAPI_5", "checkov:CKV_OPENAPI_4",
+    "checkov:CKV_OPENAPI_21", "checkov:CKV_OPENAPI_20", "ripgrep:TODO",
+    "markdownlint:MD013", "markdownlint:MD024", "biome:fmt",
+    "biome:lint/suspicious/noEmptyInterface", "biome:lint/style/noInferrableTypes",
+    "biome:lint/style/useImportType", "biome:lint/style/useEnumInitializers",
+    "biome:lint/suspicious/noExplicitAny", "biome:parse", "biome:lint/style/noParameterAssign",
+    "biome:lint/style/noNonNullAssertion", "biome:lint/complexity/noStaticOnlyClass",
+    "biome:lint/complexity/noBannedTypes", "biome:lint/complexity/noThisInStatic",
+    "biome:lint/correctness/noUnusedFunctionParameters", "radarlint-js:typescript:S6671",
+    "radarlint-js:typescript:S2301", "radarlint-js:typescript:S4043",
+    "radarlint-js:typescript:S3776", "radarlint-js:typescript:S6397",
+    "radarlint-js:typescript:S107", "radarlint-js:typescript:S4325",
+    "radarlint-js:typescript:S6564", "radarlint-js:typescript:S3626",
+    "radarlint-js:typescript:S1135", "radarlint-js:typescript:S3735",
+    "radarlint-js:typescript:S6551", "radarlint-js:typescript:S2094",
+    "yamllint:line-length", "yamllint:indentation", "yamllint:new-line-at-end-of-file",
+    "yamllint:trailing-spaces", "yamllint:brackets", "yamllint:colons",
+    "yamllint:empty-lines", "yamllint:comments", "yamllint:braces",
+    "yamllint:comments-indentation", "yamllint:commas",
+]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamserve/**/*.test.ts"]
+match.rules = [
+    "biome:lint/complexity/noUselessConstructor", "biome:lint/complexity/useLiteralKeys",
+    "biome:lint/style/noParameterAssign", "radarlint-js:typescript:S1186",
+    "radarlint-js:typescript:S3776", "radarlint-js:typescript:S2004",
+]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamserve/src/utils/saniitize-filename.ts"]
+match.rules = ["biome:lint/suspicious/noControlCharactersInRegex", "radarlint-js:typescript:S6324"]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["jamserve/.github/**/*.yml"]
+match.rules = ["yamllint:truthy", "yamllint:quoted-strings"]
+set.ignored = true

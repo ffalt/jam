@@ -14,7 +14,6 @@
     "start": "ng serve",
     "start:prod": "ng serve --configuration production",
     "build": "ng build",
-    "check": "qlty check --all --no-formatters",
     "test": "ng test",
     "test:watch": "ng test --watch true",
     "test:coverage": "ng test --coverage",

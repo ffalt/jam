@@ -22,6 +22,7 @@
     "lint": "npm run lint --prefix jamserve && npm run lint --prefix jamberry",
     "docker:build": "docker build -f docker/jam/Dockerfile -t ffalt/jam .",
     "docker:build:test": "docker build -t ffalt/jam-test docker/test",
+    "check": "qlty check --all --no-formatters",
     "release": "commit-and-tag-version -a",
     "release:dry": "commit-and-tag-version -a --dry-run",
     "releaselog": "node .github/scripts/extract-release.mjs"
