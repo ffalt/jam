@@ -14,7 +14,7 @@ const log = logger('Server');
 const server = container.get(Server);
 
 async function run(): Promise<void> {
-	log.info(`Jamserve ${JAMSERVE_VERSION} starting`);
+	log.info(`JamServe ${JAMSERVE_VERSION} starting`);
 	await server.engine.init();
 	await server.engine.start();
 	await server.init();

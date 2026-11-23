@@ -1,0 +1,17 @@
+# build context is the repo root (docker/jam/Dockerfile), only the app sources are needed
+.git
+.github
+.idea
+.vscode
+local
+node_modules
+**/node_modules
+**/.DS_Store
+**/coverage
+jamserve/dist
+jamserve/deploy
+jamserve/data
+jamserve/.env
+jamberry/dist
+jamberry/.angular
+docker/test

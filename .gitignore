@@ -1,1 +1,6 @@
 local/
+node_modules/
+RELEASELOG.md
+.idea/
+.vscode/
+.DS_Store

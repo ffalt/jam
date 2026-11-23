@@ -1,0 +1,42 @@
+name: JamBerry
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "jamberry/**"
+      - ".github/workflows/jamberry.yml"
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - "**"
+    paths:
+      - "jamberry/**"
+      - "!jamberry/**/*.md"
+      - ".github/workflows/jamberry.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: jamberry
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.x
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run test

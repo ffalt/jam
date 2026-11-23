@@ -1,20 +1,28 @@
-name: test
+name: JamServe
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "jamserve/**"
+      - ".github/workflows/jamserve.yml"
   push:
     branches:
       - main
     tags-ignore:
       - "**"
-    paths-ignore:
-      - README.md
+    paths:
+      - "jamserve/**"
+      - "!jamserve/**/*.md"
+      - ".github/workflows/jamserve.yml"
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  test:
     name: Test
     runs-on: ubuntu-latest
     permissions:
@@ -25,6 +33,9 @@ jobs:
     env:
       JAM_DB_HOST: postgres
       NODE_ENV: development
+    defaults:
+      run:
+        working-directory: jamserve
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -36,14 +47,22 @@ jobs:
       - run: npm ci
       - name: Try to build
         run: npm run build
+      - name: Test
+        if: github.event_name == 'pull_request'
+        run: npm run test
+        env:
+          API_SPEC_TEST: false
       - name: Test with coverage
+        if: github.event_name != 'pull_request'
         run: npm run coverage
         env:
           API_SPEC_TEST: false
       - uses: qltysh/qlty-action/coverage@v2.5.0
+        if: github.event_name != 'pull_request'
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: coverage/lcov.info
+          files: jamserve/coverage/lcov.info
+          add-prefix: jamserve/
     services:
       postgres:
         image: postgres

@@ -8,7 +8,7 @@ export class UserSession {
 	@ObjectField({ description: 'ID', isID: true })
 	id!: string;
 
-	@ObjectField({ description: 'Session Client', example: 'Jamberry v1' })
+	@ObjectField({ description: 'Session Client', example: 'JamBerry v1' })
 	client!: string;
 
 	@ObjectField({ nullable: true, description: 'Session Expiration', example: examples.timestamp })

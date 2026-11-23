@@ -29,7 +29,7 @@ export class PlayQueueBase {
 	@ObjectField({ description: 'Changed Timestamp', min: 0, example: examples.timestamp })
 	changed!: number;
 
-	@ObjectField({ description: 'Last Changed by Client', example: 'Jamberry v1' })
+	@ObjectField({ description: 'Last Changed by Client', example: 'JamBerry v1' })
 	changedBy!: string;
 }
 

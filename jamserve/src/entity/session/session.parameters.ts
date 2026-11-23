@@ -15,7 +15,7 @@ export class SessionFilterParameters {
 	@Field(() => Int, { nullable: true })
 	since?: number;
 
-	@ObjectField(() => String, { nullable: true, description: 'filter by client name', example: 'Jamberry' })
+	@ObjectField(() => String, { nullable: true, description: 'filter by client name', example: 'JamBerry' })
 	@Field(() => String, { nullable: true })
 	client?: string;
 
