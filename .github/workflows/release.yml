@@ -1,0 +1,201 @@
+name: release
+
+on:
+  push:
+    tags:
+      # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test-jamserve:
+    name: Test JamServe
+    runs-on: ubuntu-latest
+    container:
+      image: ffalt/jam-test:26.04
+      options: --user 1001
+    permissions:
+      contents: read
+    env:
+      JAM_DB_HOST: postgres
+    defaults:
+      run:
+        working-directory: jamserve
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.x
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run test
+        env:
+          API_SPEC_TEST: false
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: jamtest
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+  test-jamberry:
+    name: Test JamBerry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: jamberry
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.x
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run test
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs:
+      - test-jamserve
+      - test-jamberry
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.x
+          package-manager-cache: false
+
+      - name: Build JamServe
+        working-directory: jamserve
+        run: |
+          npm ci
+          npm run build:deploy
+
+      - name: Build JamBerry
+        working-directory: jamberry
+        run: |
+          npm ci
+          npm run build:deploy
+
+      - name: Generate Releaselog
+        run: |
+          node .github/scripts/extract-release.mjs
+
+      - name: Deploy JamServe to Release Branch 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
+        with:
+          token: ${{ github.token }}
+          branch: release-jamserve # The branch the action should deploy to.
+          folder: jamserve/deploy # The folder the action should deploy.
+          clean: true
+
+      - name: Deploy JamBerry to Release Branch 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
+        with:
+          token: ${{ github.token }}
+          branch: release-jamberry # The branch the action should deploy to.
+          folder: jamberry/dist # The folder the action should deploy.
+          clean: true
+
+      - name: Create Release Packages
+        run: |
+          (cd jamserve/deploy && zip -r ./jamserve-release.zip .)
+          (cd jamberry/dist && zip -r ./jamberry-release.zip .)
+
+      - name: Create Docker Compose Package
+        run: |
+          mkdir -p package/jam
+          cp -R docker/compose/. package/jam/
+          rm -f package/jam/.gitignore
+          cp LICENSE package/jam/LICENSE
+          mkdir -p package/jam/storage/db/postgres
+          (cd package && zip -r ./jam-docker.zip jam)
+
+      - name: Create Release Checksums
+        run: |
+          (cd jamserve/deploy && sha256sum jamserve-release.zip > jamserve-release.zip.sha256)
+          (cd jamberry/dist && sha256sum jamberry-release.zip > jamberry-release.zip.sha256)
+          (cd package && sha256sum jam-docker.zip > jam-docker.zip.sha256)
+
+      - name: Attest Release Packages
+        uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-path: |
+            ./jamserve/deploy/jamserve-release.zip
+            ./jamberry/dist/jamberry-release.zip
+            ./package/jam-docker.zip
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file ./RELEASELOG.md \
+            ./jamserve/deploy/jamserve-release.zip \
+            ./jamserve/deploy/jamserve-release.zip.sha256 \
+            ./jamberry/dist/jamberry-release.zip \
+            ./jamberry/dist/jamberry-release.zip.sha256 \
+            ./package/jam-docker.zip \
+            ./package/jam-docker.zip.sha256
+
+  docker:
+    name: Docker Jam Image
+    runs-on: ubuntu-latest
+    needs:
+      - release
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4.4.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+      - name: Login to DockerHub
+        uses: docker/login-action@v4.8.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: ./docker/jam/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ffalt/jam:latest
+            ffalt/jam:${{ github.ref_name }}
+          build-args: |
+            JAM_VERSION=${{ github.ref_name }}

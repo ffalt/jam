@@ -6,7 +6,7 @@ It keeps evolving along with my collection and ideas.
 Your music, your server: Jam is a self-hosted Spotify alternative for the music you own, with no subscription fees, third-party tracking or calling home. 
 Optional features can still connect to external services for metadata, lyrics and podcasts.
 
-This repository contains JamServe, the TypeScript/Node.js server, JamBerry, the Angular web client, and their Docker images.
+This repository contains JamServe, the TypeScript/Node.js server, JamBerry, the Angular web client, their Docker image and the Docker Compose deployment stack.
 
 ## Features
 
@@ -19,13 +19,13 @@ This repository contains JamServe, the TypeScript/Node.js server, JamBerry, the 
 - Manage users and access the library through REST and GraphQL APIs.
 - Use PostgreSQL or SQLite for the library database.
 
-See also [Jam-Docker](https://github.com/ffalt/jam-docker) for deployment with Docker and [JamPacked](https://github.com/ffalt/jampacked) for the mobile app.
+See also [JamPacked](https://github.com/ffalt/jampacked) for the mobile app.
 
 ## Installation and usage
 
-For Docker deployment, see [Jam-Docker](https://github.com/ffalt/jam-docker). The `ffalt/jam` image includes both JamServe and JamBerry and supports AMD64 and ARM64.
+For Docker deployment, see the [Docker guide](docs/docker.md). The `ffalt/jam` image includes both JamServe and JamBerry and supports AMD64 and ARM64; the `jam-docker.zip` release asset contains the Docker Compose stack.
 
-See the guides to [prerequisites](docs/prerequisites.md), [installation](docs/installation.md) and [configuration](docs/configuration.md).
+See the guides to [prerequisites](docs/prerequisites.md), [installation](docs/installation.md), [Docker deployment](docs/docker.md) and [configuration](docs/configuration.md).
 
 ## Development
 
@@ -50,6 +50,6 @@ npm run release
 git push --follow-tags origin main
 ```
 
-The release command updates package versions and the changelog and creates a `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which tests and publishes the release archives and the `ffalt/jam` image.
+The release command updates package versions and the changelog and creates a `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which tests and publishes the release archives, the Docker Compose package and the `ffalt/jam` image.
 
-The history of the former [JamServe](https://github.com/ffalt/jamserve), [JamBerry](https://github.com/ffalt/jamberry) and [Jam-DockerImage](https://github.com/ffalt/jam-dockerimage) repositories is retained; old tags are prefixed with `jamserve-` and `jamberry-`.
+The history of the former [JamServe](https://github.com/ffalt/jamserve), [JamBerry](https://github.com/ffalt/jamberry), [Jam-DockerImage](https://github.com/ffalt/jam-dockerimage) and [Jam-Docker](https://github.com/ffalt/jam-docker) repositories is retained; old tags are prefixed with `jamserve-` and `jamberry-`.

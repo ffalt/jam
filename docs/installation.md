@@ -1,6 +1,6 @@
 # Installation
 
-Install the [prerequisites](prerequisites.md) before following either installation method.
+Install the [prerequisites](prerequisites.md) before following either installation method. To run Jam in containers instead, see the [Docker guide](docker.md); it needs no prerequisites besides Docker.
 
 ## From release packages
 

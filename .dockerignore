@@ -14,4 +14,5 @@ jamserve/data
 jamserve/.env
 jamberry/dist
 jamberry/.angular
+docker/compose
 docker/test

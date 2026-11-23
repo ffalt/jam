@@ -3,9 +3,11 @@ name: Docker Jam Test Image
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - "test/**"
+      - "docker/test/**"
+      - ".github/workflows/docker-test-image.yml"
 
 permissions:
   contents: read
@@ -29,13 +31,13 @@ jobs:
       - name: Derive image tags
         id: meta
         run: |
-          base="$(sed -n 's|^FROM ubuntu:\(.*\)$|\1|p' test/Dockerfile)"
+          base="$(sed -n 's|^FROM ubuntu:\(.*\)$|\1|p' docker/test/Dockerfile)"
           test -n "$base"
           echo "base=$base" >> "$GITHUB_OUTPUT"
       - name: Build and push
         uses: docker/build-push-action@v7.4.0
         with:
-          context: ./test/
+          context: ./docker/test/
           platforms: linux/amd64
           push: true
           tags: |
