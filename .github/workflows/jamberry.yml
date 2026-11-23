@@ -39,4 +39,15 @@ jobs:
           node-version: 26.x
           package-manager-cache: false
       - run: npm ci
-      - run: npm run test
+      - name: Test
+        if: github.event_name == 'pull_request'
+        run: npm run test
+      - name: Test with coverage
+        if: github.event_name != 'pull_request'
+        run: npm run test:coverage -- --coverage-reporters=lcov
+      - uses: qltysh/qlty-action/coverage@v2.7.0
+        if: github.event_name != 'pull_request'
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: jamberry/coverage/jamberry/lcov.info
+          add-prefix: jamberry/
