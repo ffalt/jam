@@ -51,5 +51,3 @@ git push --follow-tags origin main
 ```
 
 The release command updates package versions and the changelog and creates a `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which tests and publishes the release archives, the Docker Compose package and the `ffalt/jam` image.
-
-The history of the former [JamServe](https://github.com/ffalt/jamserve), [JamBerry](https://github.com/ffalt/jamberry), [Jam-DockerImage](https://github.com/ffalt/jam-dockerimage) and [Jam-Docker](https://github.com/ffalt/jam-docker) repositories is retained; old tags are prefixed with `jamserve-` and `jamberry-`.
