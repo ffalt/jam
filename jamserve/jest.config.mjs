@@ -21,6 +21,7 @@ export default {
 		"!src/version.ts"
 	],
 	coveragePathIgnorePatterns: [
+		"/deploy/",
 		"/node_modules/",
 		"/test/"
 	],
