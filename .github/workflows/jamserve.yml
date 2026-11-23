@@ -57,7 +57,7 @@ jobs:
         run: npm run coverage
         env:
           API_SPEC_TEST: false
-      - uses: qltysh/qlty-action/coverage@v2.5.0
+      - uses: qltysh/qlty-action/coverage@v2.7.0
         if: github.event_name != 'pull_request'
         with:
           token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
