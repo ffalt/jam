@@ -1,4 +1,4 @@
 #!/bin/bash
 echo "Starting App"
-cd /home/node/jam/serve/ || exit
-exec node /home/node/jam/serve/dist/index.js
+cd "$(dirname "$0")/jam/serve" || exit
+exec node dist/index.js

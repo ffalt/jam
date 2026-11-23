@@ -1,4 +1,4 @@
-name: JamBerry
+name: Test JamBerry
 
 on:
   workflow_dispatch:

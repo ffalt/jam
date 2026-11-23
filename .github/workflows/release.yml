@@ -1,4 +1,4 @@
-name: release
+name: Release Jam
 
 on:
   push:
@@ -122,6 +122,21 @@ jobs:
           token: ${{ github.token }}
           branch: release-jamberry # The branch the action should deploy to.
           folder: jamberry/dist # The folder the action should deploy.
+          clean: true
+
+      - name: Assemble Release Tree
+        run: |
+          mkdir -p release/jam
+          cp docker/jam/static/start.sh release/start.sh
+          cp -R jamserve/deploy release/jam/serve
+          cp -R jamberry/dist release/jam/berry
+
+      - name: Deploy Jam to Release Branch
+        uses: JamesIves/github-pages-deploy-action@v4.9.0
+        with:
+          token: ${{ github.token }}
+          branch: release # The branch the action should deploy to.
+          folder: release # The folder the action should deploy.
           clean: true
 
       - name: Create Release Packages

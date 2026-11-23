@@ -50,4 +50,4 @@ npm run release
 git push --follow-tags origin main
 ```
 
-The release command updates package versions and the changelog and creates a `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which tests and publishes the release archives, the Docker Compose package and the `ffalt/jam` image.
+The release command updates package versions and the changelog and creates a `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which tests and publishes the release archives, the Docker Compose package, the `ffalt/jam` image and the `release` branch, which holds the built server and client in the same layout as the image.

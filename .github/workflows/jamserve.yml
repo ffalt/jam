@@ -1,4 +1,4 @@
-name: JamServe
+name: Test JamServe
 
 on:
   workflow_dispatch:
