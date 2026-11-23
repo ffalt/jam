@@ -3,7 +3,7 @@
 Jam is my long-term pet project to manage, stream and edit my own music collection.
 It keeps evolving along with my collection and ideas.
 
-Your music, your server: Jam is a self-hosted Spotify alternative for the music you own, with no subscription fees, third-party tracking or calling home. 
+Your music, your server: Jam is a self-hosted Spotify alternative for the music you own, with no subscription fees, third-party tracking or calling home.
 Optional features can still connect to external services for metadata, lyrics and podcasts.
 
 This repository contains JamServe, the TypeScript/Node.js server, JamBerry, the Angular web client, their Docker image and the Docker Compose deployment stack.

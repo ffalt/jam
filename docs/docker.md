@@ -25,7 +25,7 @@ cp storage/data/config/firststart.config.json.dist storage/data/config/firststar
 
 ## Folder structure
 
-```
+```text
 jam
 ├── .env                      # JamServe settings
 ├── docker-compose.yml

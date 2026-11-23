@@ -5,9 +5,8 @@ import { bindMockConfig, DBConfigs, getTestContainer } from '../../mock/mock.con
 import { waitEngineStart } from '../../mock/mock.engine.js';
 import { EngineService } from '../../../src/modules/engine/services/engine.service.js';
 import { Orm } from '../../../src/modules/engine/services/orm.service.js';
-import { MetadataService } from '../../../src/entity/metadata/metadata.service.js';
+import { LYRICS_MISS_TTL_MS, MetadataService } from '../../../src/entity/metadata/metadata.service.js';
 import { MetadataType } from '../../../src/types/enums.js';
-import { LYRICS_MISS_TTL_MS } from '../../../src/entity/metadata/metadata.service.js';
 import type { LyricsSearchParameters } from '../../../src/entity/metadata/metadata.parameters.js';
 import type { TrackLyrics } from '../../../src/entity/track/track.model.js';
 

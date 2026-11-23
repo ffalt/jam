@@ -30,20 +30,6 @@ name = "actionlint"
 name = "checkov"
 
 [[plugin]]
-name = "eslint"
-prefix = "jamberry"
-version = "10.15.0"
-package_file = "package.json"
-package_filters = ["eslint", "jest"]
-
-[[plugin]]
-name = "eslint"
-prefix = "jamserve"
-version = "10.15.0"
-package_file = "package.json"
-package_filters = ["eslint", "jest"]
-
-[[plugin]]
 name = "markdownlint"
 mode = "comment"
 
@@ -67,12 +53,24 @@ name = "yamllint"
 name = "biome"
 
 [[plugin]]
-name = "oxc"
-prefix = "jamberry"
+name = "zizmor"
 
 [[plugin]]
-name = "zizmor"
+name = "oxc"
+
+[[plugin]]
+name = "eslint"
+prefix = "jamberry"
+version = "10.15.0"
+package_file = "package.json"
+package_filters = ["eslint", "jest"]
+
+[[plugin]]
+name = "eslint"
 prefix = "jamserve"
+version = "10.15.0"
+package_file = "package.json"
+package_filters = ["eslint", "jest"]
 
 [[triage]]
 match.file_patterns = ["jamberry/**"]
@@ -101,15 +99,25 @@ match.rules = ["biome:lint/suspicious/noDuplicateTestHooks"]
 set.ignored = true
 
 [[triage]]
-match.file_patterns = ["jamberry/CHANGELOG.md"]
+match.rules = [
+ "zizmor:zizmor/unpinned-uses"
+]
+set.ignored = true
+
+[[triage]]
+match.rules = [
+  "markdownlint:MD013",
+  "markdownlint:MD024"
+]
 set.ignored = true
 
 [[triage]]
 match.file_patterns = ["jamserve/**"]
 match.rules = [
-    "zizmor:zizmor/unpinned-uses", "checkov:CKV_OPENAPI_5", "checkov:CKV_OPENAPI_4",
-    "checkov:CKV_OPENAPI_21", "checkov:CKV_OPENAPI_20", "ripgrep:TODO",
-    "markdownlint:MD013", "markdownlint:MD024", "biome:fmt",
+    "checkov:CKV_OPENAPI_5", "checkov:CKV_OPENAPI_4",
+    "checkov:CKV_OPENAPI_21", "checkov:CKV_OPENAPI_20",
+    "ripgrep:TODO",
+    "biome:fmt",
     "biome:lint/suspicious/noEmptyInterface", "biome:lint/style/noInferrableTypes",
     "biome:lint/style/useImportType", "biome:lint/style/useEnumInitializers",
     "biome:lint/suspicious/noExplicitAny", "biome:parse", "biome:lint/style/noParameterAssign",
@@ -144,6 +152,11 @@ match.rules = ["biome:lint/suspicious/noControlCharactersInRegex", "radarlint-js
 set.ignored = true
 
 [[triage]]
-match.file_patterns = ["jamserve/.github/**/*.yml"]
+match.file_patterns = [".github/**/*.yml"]
 match.rules = ["yamllint:truthy", "yamllint:quoted-strings"]
+set.ignored = true
+
+[[triage]]
+match.file_patterns = ["docker/compose/docker-compose.yml"]
+match.rules = ["yamllint:quoted-strings"]
 set.ignored = true
