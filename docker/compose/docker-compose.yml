@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:17.12
+    container_name: jam-postgres
+    volumes:
+      - type: bind
+        source: ./storage/db/postgres
+        target: /var/lib/postgresql/data
+#    ports:
+#      - "127.0.0.1:5432:5432"
+    environment:
+       POSTGRES_DB: "${JAM_DB_NAME}"
+       POSTGRES_USER: "${JAM_DB_USER}"
+       POSTGRES_PASSWORD: "${JAM_DB_PASSWORD}"
+  jam:
+    restart: unless-stopped
+    image: ffalt/jam:latest
+    container_name: jam
+    depends_on:
+      - postgres
+    volumes:
+      - type: bind
+        source: ./storage/data
+        target: /home/node/jam/data
+      - type: bind
+        source: ./storage/logs
+        target: /home/node/jam/logs
+      - type: bind
+        source: ./storage/media
+        target: /usr/share/media
+    user: node
+    ports:
+      - "${JAM_HOST}:${JAM_PORT}:4040"
+    command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; exec sh /home/node/start.sh'
+    environment:
+      JAM_HOST: "0.0.0.0"
+      JAM_PORT: "4040"
+      JAM_DOMAIN: "${JAM_DOMAIN}"
+      JAM_LOG_LEVEL: "${JAM_LOG_LEVEL}"
+      JAM_MIN_PASSWORD_LENGTH: "${JAM_MIN_PASSWORD_LENGTH}"
+      JAM_JWT_SECRET: "${JAM_JWT_SECRET}"
+      JAM_JWT_MAXAGE: "${JAM_JWT_MAXAGE}"
+      JAM_ALLOWED_COOKIE_DOMAINS: "${JAM_ALLOWED_COOKIE_DOMAINS}"
+      JAM_SESSION_SECRET: "${JAM_SESSION_SECRET}"
+      JAM_SESSION_COOKIE_SECURE: "${JAM_SESSION_COOKIE_SECURE}"
+      JAM_SESSION_TRUST_PROXY: "${JAM_SESSION_TRUST_PROXY}"
+      JAM_SESSION_MAXAGE: "${JAM_SESSION_MAXAGE}"
+      JAM_DB_NAME: "${JAM_DB_NAME}"
+      JAM_DB_USER: "${JAM_DB_USER}"
+      JAM_DB_PASSWORD: "${JAM_DB_PASSWORD}"
+      JAM_LASTFM_API_KEY: "${JAM_LASTFM_API_KEY}"
+      JAM_ACOUSTID_API_KEY: "${JAM_ACOUSTID_API_KEY}"
+      JAM_DISCOGS_API_TOKEN: "${JAM_DISCOGS_API_TOKEN}"
+      JAM_LRCLIB_APP_ID: "${JAM_LRCLIB_APP_ID}"
+      JAM_LRCLIB_API_KEY: "${JAM_LRCLIB_API_KEY}"
+      JAM_USE_TASKS: "${JAM_USE_TASKS}"
+      JAM_DATA_PATH: /home/node/jam/data/
+      JAM_FRONTEND_PATH: /home/node/jam/berry/
+      JAM_DB_DIALECT: postgres
+      JAM_DB_HOST: postgres
+      JAM_DB_PORT: 5432
+#      JAM_DB_SOCKET: /var/run/postgresql/.s.PGSQL.5432
