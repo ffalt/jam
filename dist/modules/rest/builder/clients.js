@@ -1,0 +1,221 @@
+import { metadataStorage } from '../metadata/metadata-storage.js';
+import Mustache from 'mustache';
+import fse from 'fs-extra';
+import path from 'node:path';
+import { capitalize } from '../../../utils/capitalize.js';
+import { logger } from '../../../utils/logger.js';
+import { sanitizeFilename } from '../../../utils/saniitize-filename.js';
+import { archive } from '../../../utils/archive.js';
+const log = logger('ClientBuilder');
+function generateClientCalls(call, method, generateRequestClientCalls, generateBinaryClientCalls, generateUploadClientCalls) {
+    const name = call.methodName.replaceAll('/', '_');
+    const upload = call.parameters.find(o => o.kind === 'arg' && o.mode === 'file');
+    const parameterType = getCallParameterType(call);
+    if (upload) {
+        return generateUploadClientCalls(call, name, parameterType, upload);
+    }
+    if (call.binary) {
+        return generateBinaryClientCalls(call, name, parameterType);
+    }
+    return generateRequestClientCalls(call, name, parameterType, method);
+}
+export async function buildServiceParts(generateRequestClientCalls, generateBinaryClientCalls, generateUploadClientCalls, buildPartService) {
+    const metadata = metadataStorage();
+    const sections = {};
+    buildCallSections(metadata.gets, 'get', sections, (call, method) => generateClientCalls(call, method, generateRequestClientCalls, generateBinaryClientCalls, generateUploadClientCalls));
+    buildCallSections(metadata.posts, 'post', sections, (call, method) => generateClientCalls(call, method, generateRequestClientCalls, generateBinaryClientCalls, generateUploadClientCalls));
+    const keys = Object.keys(sections).filter(key => !['Auth', 'Base'].includes(key));
+    const parts = [];
+    for (const key of keys) {
+        const part = capitalize(key);
+        parts.push({ name: key.toLowerCase(), part, content: await buildPartService(key, part, sections[key]) });
+    }
+    return parts;
+}
+export async function buildPartService(template, key, part, calls) {
+    const list = calls.map(call => {
+        return { ...call, name: call.name.replace(`${key}_`, ''), paramsType: wrapLong(call.paramsType) };
+    });
+    const withHttpEvent = calls.some(c => c.resultType.includes('HttpEvent'));
+    const withJam = calls.some(c => c.resultType.includes('Jam.'));
+    const withJamParameter = calls.some(c => c.paramsType.includes('JamParameter'));
+    return buildTemplate(template, { list, part, withHttpEvent, withJam, withJamParam: withJamParameter });
+}
+export function buildCallSections(calls, method, sections, generateClientCalls) {
+    for (const call of calls) {
+        if (!call.controllerClassMetadata) {
+            continue;
+        }
+        const tag = call.controllerClassMetadata.name.replace('Controller', '');
+        sections[tag] = [...(sections[tag] ?? []), ...generateClientCalls(call, method)];
+    }
+}
+export function wrapLong(s) {
+    if (s && s.length > 140) {
+        return s.split('&').map(s => s.trim()).join(' &\n\t');
+    }
+    return s;
+}
+export async function buildTemplate(template, data = {}) {
+    const file = await fse.readFile(template);
+    return Mustache.render(file.toString(), data);
+}
+export async function buildParts(template, serviceParts) {
+    const list = [...serviceParts]
+        .sort((a, b) => a.name.localeCompare(b.name));
+    for (const [index, entry] of list.entries()) {
+        entry.isLast = index === list.length - 1;
+    }
+    return buildTemplate(template, { list });
+}
+export function getResultType(call) {
+    const metadata = metadataStorage();
+    let resultType;
+    if (call.getReturnType) {
+        const type = call.getReturnType();
+        switch (type) {
+            case String: {
+                resultType = 'string';
+                break;
+            }
+            case Number: {
+                resultType = 'number';
+                break;
+            }
+            case Boolean: {
+                resultType = 'boolean';
+                break;
+            }
+            default: {
+                const enumInfo = metadata.enumInfo(type);
+                if (enumInfo) {
+                    resultType = enumInfo.name;
+                }
+                else {
+                    const fObjectType = metadata.resultType(type);
+                    resultType = fObjectType?.name ? (`Jam.${fObjectType.name}`) : 'any';
+                }
+            }
+        }
+        if (call.returnTypeOptions?.array) {
+            resultType = `Array<${resultType}>`;
+        }
+    }
+    return resultType;
+}
+function getCallParameterArgumentType(parameter, metadata) {
+    const type = parameter.getType();
+    let typeString;
+    const optional = parameter.typeOptions.nullable ? '?' : '';
+    if (parameter.name === 'id') {
+        typeString = parameter.typeOptions.nullable ? 'JamParameters.MaybeID' : 'JamParameters.ID';
+    }
+    else {
+        switch (type) {
+            case Boolean: {
+                typeString = `{${parameter.name}${optional}: boolean}`;
+                break;
+            }
+            case Number: {
+                typeString = `{${parameter.name}${optional}: number}`;
+                break;
+            }
+            case String: {
+                typeString = `{${parameter.name}${optional}: string}`;
+                break;
+            }
+            default: {
+                const enumInfo = metadata.enumInfo(type);
+                if (enumInfo) {
+                    typeString = `{${parameter.name}${optional}: ${enumInfo.name}}`;
+                }
+                else {
+                    const fObjectType = metadata.parameterTypes.find(it => it.target === type);
+                    typeString = fObjectType?.name ? (`JamParameter.${fObjectType.name}`) : 'any';
+                }
+            }
+        }
+    }
+    if (parameter.typeOptions.array) {
+        typeString = `Array<${typeString}>`;
+    }
+    return typeString;
+}
+function getCallParameterArgumentsType(parameter, metadata) {
+    const type = parameter.getType();
+    const fObjectType = metadata.parameterTypes.find(it => it.target === type);
+    let typeString = fObjectType?.name ? `JamParameters.${fObjectType.name}` : 'any';
+    if (parameter.typeOptions.array) {
+        typeString = `Array<${typeString}>`;
+    }
+    return typeString;
+}
+export function getCallParameterType(call) {
+    const metadata = metadataStorage();
+    const types = [];
+    if (call.parameters.filter(p => ['args', 'arg'].includes(p.kind)).length > 1) {
+        types.push(`JamParameters.${call.controllerClassMetadata?.name.replace('Controller', '')}${capitalize(call.methodName)}Parameters`);
+    }
+    else {
+        for (const parameter of call.parameters) {
+            if (parameter.kind === 'arg' && parameter.mode !== 'file') {
+                types.push(getCallParameterArgumentType(parameter, metadata));
+            }
+            else if (parameter.kind === 'args') {
+                types.push(getCallParameterArgumentsType(parameter, metadata));
+            }
+        }
+    }
+    return types.join(' & ');
+}
+export function callDescription(call) {
+    const roles = call.roles ?? call.controllerClassMetadata?.roles ?? [];
+    const result = (call.description ?? '') + (roles.length > 0 ? `; Rights needed: ${roles.join(',')}` : '');
+    return result.trim();
+}
+export function getCustomParameterTemplate(customPathParameters, call, result) {
+    const routeParts = [];
+    const validateNames = [];
+    for (const g of customPathParameters.groups) {
+        const hasOptionalAlias = (call.aliasRoutes ?? []).some(alias => (alias.hideParameters ?? []).includes(g.name));
+        if (hasOptionalAlias) {
+            routeParts.push(`\${params.${g.name} ? \`${g.prefix ?? ''}\${params.${g.name}}\` : ''}`);
+        }
+        else {
+            validateNames.push(g.name);
+            routeParts.push(`${g.prefix ?? ''}\${params.${g.name}}`);
+        }
+    }
+    const condition = validateNames.map(s => `!params.${s}`).join(' && ');
+    const validateCode = `if (${condition}) {\n\t\t\t${result};\n\t\t}`;
+    return { paramRoute: `/${routeParts.join('')}`, validateCode };
+}
+export async function getClientZip(filename, list, models) {
+    return {
+        pipe: {
+            pipe: (res) => {
+                const sanitizedName = sanitizeFilename(filename || 'client');
+                const zip = archive('zip', { zlib: { level: 9 } });
+                zip.on('error', error => {
+                    log.error('Archive error:', error.message);
+                    res.destroy();
+                });
+                res.contentType('zip');
+                res.type('application/zip');
+                res.setHeader('Content-Disposition', `attachment; filename="${sanitizedName}.zip"`);
+                for (const entry of list) {
+                    zip.append(entry.content, { name: entry.name });
+                }
+                for (const entry of models) {
+                    zip.append(fse.createReadStream(path.resolve(`./static/models/${entry}`)), { name: `model/${entry}` });
+                }
+                zip.pipe(res);
+                zip.finalize()
+                    .catch((error) => {
+                    log.error(error);
+                });
+            }
+        }
+    };
+}
+//# sourceMappingURL=clients.js.map

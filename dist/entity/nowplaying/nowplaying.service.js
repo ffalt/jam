@@ -1,0 +1,93 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { injectable, inject } from 'inversify';
+import { DBObjectType } from '../../types/enums.js';
+import { logger } from '../../utils/logger.js';
+import { StateService } from '../state/state.service.js';
+import { notFoundError } from '../../modules/deco/express/express-error.js';
+const log = logger('NowPlayingService');
+const NOW_PLAYING_TTL_MS = 120 * 60 * 1000;
+let NowPlayingService = class NowPlayingService {
+    constructor() {
+        this.playing = [];
+    }
+    pruneStale() {
+        const cutoff = Date.now() - NOW_PLAYING_TTL_MS;
+        this.playing = this.playing.filter(np => np.time > cutoff);
+    }
+    async getNowPlaying() {
+        this.pruneStale();
+        return this.playing;
+    }
+    clear() {
+        this.playing = [];
+    }
+    async report(orm, entries, user) {
+        await this.stateService.reportPlaying(orm, entries, user);
+    }
+    async reportEpisode(orm, episode, user) {
+        this.pruneStale();
+        this.playing = this.playing.filter(np => (np.user.id !== user.id));
+        const result = { time: Date.now(), episode, user };
+        this.playing.push(result);
+        this.report(orm, [
+            { id: episode.id, type: DBObjectType.episode },
+            { id: episode.podcast.idOrFail(), type: DBObjectType.podcast }
+        ], user)
+            .catch((error) => {
+            log.error(error);
+        });
+        return result;
+    }
+    async reportTrack(orm, track, user) {
+        this.pruneStale();
+        this.playing = this.playing.filter(np => (np.user.id !== user.id));
+        const result = { time: Date.now(), track, user };
+        this.playing.push(result);
+        this.report(orm, [
+            { id: track.id, type: DBObjectType.track },
+            { id: track.album.id(), type: DBObjectType.album },
+            { id: track.artist.id(), type: DBObjectType.artist },
+            { id: track.folder.id(), type: DBObjectType.folder },
+            { id: track.series.id(), type: DBObjectType.series },
+            { id: track.root.id(), type: DBObjectType.root }
+        ], user)
+            .catch((error) => {
+            log.error(error);
+        });
+        return result;
+    }
+    async scrobble(orm, id, user) {
+        const result = await orm.findInStreamTypes(id);
+        if (!result) {
+            return Promise.reject(notFoundError());
+        }
+        switch (result.objType) {
+            case DBObjectType.track: {
+                return await this.reportTrack(orm, result.obj, user);
+            }
+            case DBObjectType.episode: {
+                return this.reportEpisode(orm, result.obj, user);
+            }
+            default: {
+                return Promise.reject(new Error('Invalid Object Type for Scrobbling'));
+            }
+        }
+    }
+};
+__decorate([
+    inject(StateService),
+    __metadata("design:type", StateService)
+], NowPlayingService.prototype, "stateService", void 0);
+NowPlayingService = __decorate([
+    injectable()
+], NowPlayingService);
+export { NowPlayingService };
+//# sourceMappingURL=nowplaying.service.js.map

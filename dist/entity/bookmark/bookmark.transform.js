@@ -1,0 +1,26 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { injectable } from 'inversify';
+import { BaseTransformService } from '../base/base.transform.js';
+let BookmarkTransformService = class BookmarkTransformService extends BaseTransformService {
+    async bookmarkBase(_orm, o) {
+        return {
+            id: o.id,
+            trackID: o.track.id() ?? undefined,
+            episodeID: o.episode.id() ?? undefined,
+            position: o.position,
+            comment: o.comment,
+            created: o.createdAt.valueOf(),
+            changed: o.updatedAt.valueOf()
+        };
+    }
+};
+BookmarkTransformService = __decorate([
+    injectable()
+], BookmarkTransformService);
+export { BookmarkTransformService };
+//# sourceMappingURL=bookmark.transform.js.map

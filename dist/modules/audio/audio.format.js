@@ -1,0 +1,247 @@
+import { ID3v1_GENRES, ID3v2 } from 'jamp3';
+import { cleanGenre } from '../../utils/genres.js';
+import { eventsToLyrics, hasLyricsTimestamps, lyricsLanguage, parseSimplifiedSynchronisedLyrics, plainLyrics } from '../../utils/lyrics-lrc.js';
+import { ID3TrackTagRawFormatTypes } from './audio.module.js';
+import { AudioFormatType, TagFormatType } from '../../types/enums.js';
+export class FORMAT {
+    static packJamServeMedia(data) {
+        if (!data) {
+            return {};
+        }
+        return {
+            mediaFormat: AudioFormatType.mp3,
+            mediaDuration: Math.floor(data.durationEstimate * 1000),
+            mediaBitRate: data.bitRate,
+            mediaSampleRate: data.sampleRate,
+            mediaBitDepth: data.sampleCount,
+            mediaChannels: data.channels,
+            mediaEncoded: data.encoded,
+            mediaMode: data.mode,
+            mediaVersion: `${data.version} ${data.layer}`
+        };
+    }
+    static packProbeJamServeMedia(data, format) {
+        if (!data.streams) {
+            return {};
+        }
+        const stream = data.streams.find(s => s.codec_type === 'audio');
+        if (!stream) {
+            return {};
+        }
+        return {
+            mediaFormat: format,
+            mediaDuration: Math.floor(Number(data.format.duration) * 1000),
+            mediaBitRate: Number(data.format.bit_rate),
+            mediaSampleRate: Number(stream.sample_rate),
+            mediaBitDepth: Number(stream.bits_per_sample),
+            mediaChannels: Number(stream.channels),
+            mediaMode: stream.channel_layout,
+            mediaVersion: stream.codec_long_name
+        };
+    }
+    static packFlacMediaInfoJamServeMedia(media) {
+        if (!media) {
+            return {};
+        }
+        return {
+            mediaFormat: AudioFormatType.flac,
+            mediaDuration: Math.floor(media.duration * 1000),
+            mediaSampleRate: media.sampleRate,
+            mediaBitDepth: media.sampleCount,
+            mediaEncoded: 'VBR',
+            mediaChannels: media.channels
+        };
+    }
+    static parseNum(s) {
+        if (s !== undefined) {
+            const n = Number(s.trim());
+            if (Number.isNaN(n)) {
+                return;
+            }
+            return n;
+        }
+        return;
+    }
+    static parseYear(s) {
+        if (s === undefined) {
+            return;
+        }
+        s = s.slice(0, 4).trim();
+        if (s.length === 4) {
+            const n = Number(s);
+            if (Number.isNaN(n)) {
+                return;
+            }
+            return n;
+        }
+        return;
+    }
+    static packProbeJamServeTag(data) {
+        if (!data.format.tags || Object.keys(data.format.tags).length === 0) {
+            return { format: TagFormatType.none };
+        }
+        const simple = {};
+        for (const [key, value] of Object.entries(data.format.tags)) {
+            simple[key.toUpperCase().replaceAll(' ', '_')] = this.cleanText(value);
+        }
+        return {
+            format: TagFormatType.ffmpeg,
+            artist: simple.ARTIST,
+            title: simple.TITLE,
+            album: simple.ALBUM,
+            year: this.parseNum(simple.DATE),
+            trackNr: this.parseNum(simple.TRACK),
+            disc: this.parseNum(simple.DISC),
+            lyrics: simple.LYRICS,
+            seriesNr: simple.WORK,
+            series: simple.GROUPING,
+            genres: simple.GENRE ? cleanGenre(simple.GENRE) : undefined,
+            albumArtist: simple.ALBUM_ARTIST,
+            albumSort: simple.ALBUM_SORT ?? simple.ALBUM_SORT_ORDER,
+            albumArtistSort: simple.ALBUM_ARTIST_SORT ?? simple.ALBUM_ARTIST_SORT_ORDER,
+            artistSort: simple.ARTIST_SORT ?? simple.ARTIST_SORT_ORDER,
+            titleSort: simple.TITLE_SORT ?? simple.TITLE_SORT_ORDER,
+            mbTrackID: simple.TRACKID,
+            mbAlbumType: simple.ALBUMTYPE,
+            mbAlbumArtistID: simple.ALBUMARTISTID,
+            mbArtistID: simple.ARTISTID,
+            mbReleaseID: simple.ALBUMID,
+            mbReleaseTrackID: simple.RELEASETRACKID,
+            mbReleaseGroupID: simple.RELEASEGROUPID,
+            mbRecordingID: simple.RECORDINGID,
+            mbAlbumStatus: simple.ALBUMSTATUS,
+            mbReleaseCountry: simple.RELEASECOUNTRY
+        };
+    }
+    static packID3v1JamServeTag(data) {
+        if (!data) {
+            return;
+        }
+        const simple = data.value;
+        const genre = (simple.genreIndex !== undefined && Object.hasOwn(ID3v1_GENRES, simple.genreIndex)) ? ID3v1_GENRES[simple.genreIndex] : undefined;
+        return {
+            format: TagFormatType.id3v1,
+            artist: this.cleanText(simple.artist),
+            title: this.cleanText(simple.title),
+            album: this.cleanText(simple.album),
+            year: this.parseNum(simple.year),
+            trackNr: simple.track,
+            genres: genre ? [genre] : undefined
+        };
+    }
+    static packID3v2JamServeTag(data) {
+        if (!data) {
+            return;
+        }
+        const simple = ID3v2.simplify(data, ['CHAP', 'APIC']);
+        const pics = data.frames.filter(f => f.id === 'APIC');
+        const format = ID3TrackTagRawFormatTypes[data.head ? data.head.rev : -1] || TagFormatType.none;
+        const syncedRaw = simple.SYNCHRONISEDLYRICS ?? (simple.LYRICS && hasLyricsTimestamps(simple.LYRICS) ? simple.LYRICS : undefined);
+        let syncedlyrics;
+        let lyricslanguage;
+        if (syncedRaw) {
+            const parsed = parseSimplifiedSynchronisedLyrics(syncedRaw);
+            if (parsed) {
+                syncedlyrics = eventsToLyrics(parsed.events);
+                lyricslanguage = lyricsLanguage(parsed.language);
+            }
+        }
+        lyricslanguage ?? (lyricslanguage = this.unsynchronisedLyricsLanguage(data));
+        return {
+            format,
+            album: this.cleanText(simple.ALBUM),
+            albumSort: this.cleanText(simple.ALBUMSORT),
+            albumArtist: this.cleanText(simple.ALBUMARTIST),
+            albumArtistSort: this.cleanText(simple.ALBUMARTISTSORT),
+            artist: this.cleanText(simple.ARTIST),
+            artistSort: this.cleanText(simple.ARTISTSORT),
+            title: this.cleanText(simple.TITLE),
+            titleSort: this.cleanText(simple.TITLESORT),
+            genres: simple.GENRE ? cleanGenre(simple.GENRE) : undefined,
+            disc: this.parseNum(simple.DISCNUMBER),
+            discTotal: this.parseNum(simple.DISCTOTAL),
+            trackNr: this.parseNum(simple.TRACKNUMBER),
+            trackTotal: this.parseNum(simple.TRACKTOTAL),
+            lyrics: this.unsynchronisedLyrics(simple.LYRICS),
+            syncedlyrics,
+            lyricslanguage,
+            seriesNr: simple.WORK,
+            series: simple.GROUPING,
+            year: this.parseYear(simple.ORIGINALDATE) ?? this.parseYear(simple.DATE) ?? this.parseYear(simple.RELEASETIME),
+            mbTrackID: simple.MUSICBRAINZ_TRACKID,
+            mbAlbumType: simple.RELEASETYPE,
+            mbAlbumArtistID: simple.MUSICBRAINZ_ALBUMARTISTID,
+            mbArtistID: simple.MUSICBRAINZ_ARTISTID,
+            mbReleaseID: simple.MUSICBRAINZ_ALBUMID,
+            mbReleaseTrackID: simple.MUSICBRAINZ_RELEASETRACKID,
+            mbReleaseGroupID: simple.MUSICBRAINZ_RELEASEGROUPID,
+            mbRecordingID: simple.MUSICBRAINZ_RELEASETRACKID,
+            mbAlbumStatus: simple.RELEASESTATUS,
+            mbReleaseCountry: simple.RELEASECOUNTRY,
+            nrTagImages: pics.length
+        };
+    }
+    static unsynchronisedLyricsLanguage(data) {
+        const frame = data.frames.find(f => ['ULT', 'USLT'].includes(f.id));
+        return lyricsLanguage(frame?.value.language);
+    }
+    static unsynchronisedLyrics(value) {
+        if (!value) {
+            return undefined;
+        }
+        return hasLyricsTimestamps(value) ? plainLyrics(value) : value;
+    }
+    static cleanText(s) {
+        return s === undefined ? undefined : s.replaceAll(/ {2}/g, ' ').trim();
+    }
+    static packFlacVorbisCommentJamServeTag(comment, pictures) {
+        if (!comment?.tag) {
+            return;
+        }
+        const simple = comment.tag;
+        const syncedRaw = simple.SYNCHRONISEDLYRICS ?? simple.SYNCEDLYRICS ?? (simple.LYRICS && hasLyricsTimestamps(simple.LYRICS) ? simple.LYRICS : undefined);
+        let syncedlyrics;
+        let lyricslanguage;
+        if (syncedRaw) {
+            const parsed = parseSimplifiedSynchronisedLyrics(syncedRaw);
+            if (parsed) {
+                syncedlyrics = eventsToLyrics(parsed.events);
+                lyricslanguage = lyricsLanguage(parsed.language);
+            }
+        }
+        return {
+            format: TagFormatType.vorbis,
+            album: simple.ALBUM,
+            albumSort: simple.ALBUMSORT,
+            albumArtist: simple.ALBUMARTIST,
+            albumArtistSort: simple.ALBUMARTISTSORT,
+            artist: simple.ARTIST,
+            artistSort: simple.ARTISTSORT,
+            genres: simple.GENRE ? cleanGenre(simple.GENRE) : undefined,
+            disc: this.parseNum(simple.DISCNUMBER),
+            discTotal: this.parseNum(simple.DISCTOTAL) ?? this.parseNum(simple.TOTALDISCS),
+            title: simple.TITLE,
+            titleSort: simple.TITLESORT,
+            trackNr: this.parseNum(simple.TRACKNUMBER) ?? this.parseNum(simple.TRACK),
+            trackTotal: this.parseNum(simple.TRACKTOTAL) ?? this.parseNum(simple.TOTALTRACKS),
+            year: this.parseYear(simple.ORIGINALYEAR) ?? this.parseYear(simple.ORIGINALDATE) ?? this.parseYear(simple.DATE),
+            lyrics: this.unsynchronisedLyrics(simple.LYRICS),
+            syncedlyrics,
+            lyricslanguage,
+            seriesNr: simple.WORK,
+            series: simple.GROUPING,
+            mbTrackID: simple.MUSICBRAINZ_TRACKID,
+            mbAlbumType: simple.RELEASETYPE,
+            mbAlbumArtistID: simple.MUSICBRAINZ_ALBUMARTISTID,
+            mbArtistID: simple.MUSICBRAINZ_ARTISTID,
+            mbReleaseID: simple.MUSICBRAINZ_ALBUMID,
+            mbReleaseTrackID: simple.MUSICBRAINZ_RELEASETRACKID,
+            mbReleaseGroupID: simple.MUSICBRAINZ_RELEASEGROUPID,
+            mbRecordingID: simple.MUSICBRAINZ_RELEASETRACKID,
+            mbAlbumStatus: simple.RELEASESTATUS,
+            mbReleaseCountry: simple.RELEASECOUNTRY,
+            nrTagImages: pictures ? pictures.length : undefined
+        };
+    }
+}
+//# sourceMappingURL=audio.format.js.map
