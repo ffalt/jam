@@ -49,6 +49,7 @@ export function restRouter(api: express.Router, options: RestOptions): Array<Rou
 	const registerAutoClean = (req: express.Request, res: express.Response): void => {
 		finishedRequest(res, error => {
 			if ((error || res.statusCode >= 400) && req.file?.path) {
+				// codeql[js/path-injection] multer generates this path from crypto.randomBytes, no request data
 				fileDeleteIfExists(req.file.path)
 					.catch((removeError: unknown) => {
 						log.error(removeError);
@@ -80,6 +81,7 @@ export function restRouter(api: express.Router, options: RestOptions): Array<Rou
 		try {
 			validateUploadedFile(req.file);
 		} catch (validationError) {
+			// codeql[js/path-injection] multer generates this path from crypto.randomBytes, no request data
 			await fileDeleteIfExists(req.file.path)
 				.catch((removeError: unknown) => {
 					log.errorMsg('Failed to clean up rejected upload file:', removeError);
