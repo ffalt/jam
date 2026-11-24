@@ -1,0 +1,1 @@
+{"version":3,"file":"builder.js","sourceRoot":"","sources":["../../../../src/modules/rest/metadata/builder.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,uBAAuB,CAAC;AAExD,MAAM,UAAU,aAAa;IAC5B,MAAM,QAAQ,GAAG,eAAe,EAAE,CAAC;IACnC,QAAQ,CAAC,KAAK,EAAE,CAAC;AAClB,CAAC"}

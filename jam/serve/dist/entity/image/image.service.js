@@ -1,0 +1,182 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var ImageService_1;
+import path from 'node:path';
+import { injectable, inject } from 'inversify';
+import { ImageModule } from '../../modules/image/image.module.js';
+import { DBObjectType, FolderType } from '../../types/enums.js';
+import { PodcastService } from '../podcast/podcast.service.js';
+import { TrackService } from '../track/track.service.js';
+import { FolderService } from '../folder/folder.service.js';
+import { UserService } from '../user/user.service.js';
+import { AlbumService } from '../album/album.service.js';
+import { ArtistService } from '../artist/artist.service.js';
+import { SeriesService } from '../series/series.service.js';
+import { RootService } from '../root/root.service.js';
+import { ArtworkService } from '../artwork/artwork.service.js';
+let ImageService = ImageService_1 = class ImageService {
+    static getCoverArtTextFolder(folder) {
+        let result;
+        if (folder.folderType === FolderType.artist) {
+            result = folder.artist;
+        }
+        else if ([FolderType.multialbum, FolderType.album].includes(folder.folderType)) {
+            result = folder.album;
+        }
+        if (!result || result.length === 0) {
+            result = path.basename(folder.path);
+        }
+        return result;
+    }
+    static async getCoverArtTextEpisode(episode) {
+        const tag = await episode.tag.get();
+        let text = tag?.title;
+        if (!text && episode.path) {
+            text = path.basename(episode.path);
+        }
+        text ?? (text = episode.name);
+        if (!text) {
+            text = 'Podcast Episode';
+        }
+        return text;
+    }
+    static async getCoverArtTextTrack(track) {
+        const tag = await track.tag.get();
+        return tag?.title ?? path.basename(track.path);
+    }
+    static getCoverArtTextPodcast(podcast) {
+        return podcast.title ?? podcast.url;
+    }
+    static async getCoverArtText(o, type) {
+        switch (type) {
+            case DBObjectType.track: {
+                return await this.getCoverArtTextTrack(o);
+            }
+            case DBObjectType.folder: {
+                return this.getCoverArtTextFolder(o);
+            }
+            case DBObjectType.episode: {
+                return await this.getCoverArtTextEpisode(o);
+            }
+            case DBObjectType.podcast: {
+                return this.getCoverArtTextPodcast(o);
+            }
+            case DBObjectType.playlist: {
+                return o.name;
+            }
+            case DBObjectType.series: {
+                return o.name;
+            }
+            case DBObjectType.album: {
+                return o.name;
+            }
+            case DBObjectType.artist: {
+                return o.name;
+            }
+            case DBObjectType.user: {
+                return o.name;
+            }
+            case DBObjectType.root: {
+                return o.name;
+            }
+            case DBObjectType.genre: {
+                return o.name;
+            }
+        }
+        return type;
+    }
+    async getObjImageByType(orm, o, type, size, format) {
+        switch (type) {
+            case DBObjectType.track: {
+                return this.trackService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.folder: {
+                return this.folderService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.artist: {
+                return this.artistService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.album: {
+                return this.albumService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.user: {
+                return this.userService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.podcast: {
+                return this.podcastService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.episode: {
+                return this.podcastService.getEpisodeImage(orm, o, size, format);
+            }
+            case DBObjectType.series: {
+                return this.seriesService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.artwork: {
+                return this.artworkService.getImage(orm, o, size, format);
+            }
+            case DBObjectType.root: {
+                return this.rootService.getImage(orm, o, size, format);
+            }
+        }
+        return;
+    }
+    async getObjImage(orm, o, type, size, format) {
+        return (await this.getObjImageByType(orm, o, type, size, format)) ?? (await this.paintImage(o, type, size, format));
+    }
+    async paintImage(obj, type, size, format) {
+        const s = await ImageService_1.getCoverArtText(obj, type);
+        return this.imageModule.paint(s, size ?? 128, format);
+    }
+};
+__decorate([
+    inject(ImageModule),
+    __metadata("design:type", ImageModule)
+], ImageService.prototype, "imageModule", void 0);
+__decorate([
+    inject(PodcastService),
+    __metadata("design:type", PodcastService)
+], ImageService.prototype, "podcastService", void 0);
+__decorate([
+    inject(TrackService),
+    __metadata("design:type", TrackService)
+], ImageService.prototype, "trackService", void 0);
+__decorate([
+    inject(FolderService),
+    __metadata("design:type", FolderService)
+], ImageService.prototype, "folderService", void 0);
+__decorate([
+    inject(UserService),
+    __metadata("design:type", UserService)
+], ImageService.prototype, "userService", void 0);
+__decorate([
+    inject(RootService),
+    __metadata("design:type", RootService)
+], ImageService.prototype, "rootService", void 0);
+__decorate([
+    inject(SeriesService),
+    __metadata("design:type", SeriesService)
+], ImageService.prototype, "seriesService", void 0);
+__decorate([
+    inject(ArtistService),
+    __metadata("design:type", ArtistService)
+], ImageService.prototype, "artistService", void 0);
+__decorate([
+    inject(AlbumService),
+    __metadata("design:type", AlbumService)
+], ImageService.prototype, "albumService", void 0);
+__decorate([
+    inject(ArtworkService),
+    __metadata("design:type", ArtworkService)
+], ImageService.prototype, "artworkService", void 0);
+ImageService = ImageService_1 = __decorate([
+    injectable()
+], ImageService);
+export { ImageService };
+//# sourceMappingURL=image.service.js.map

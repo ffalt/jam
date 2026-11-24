@@ -1,0 +1,216 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { Album } from '../../../entity/album/album.js';
+import { State } from '../../../entity/state/state.js';
+import { Artist } from '../../../entity/artist/artist.js';
+import { Artwork } from '../../../entity/artwork/artwork.js';
+import { Bookmark } from '../../../entity/bookmark/bookmark.js';
+import { Episode } from '../../../entity/episode/episode.js';
+import { Folder } from '../../../entity/folder/folder.js';
+import { Root } from '../../../entity/root/root.js';
+import { PlayQueue } from '../../../entity/playqueue/playqueue.js';
+import { Playlist } from '../../../entity/playlist/playlist.js';
+import { Podcast } from '../../../entity/podcast/podcast.js';
+import { Series } from '../../../entity/series/series.js';
+import { Radio } from '../../../entity/radio/radio.js';
+import { Session } from '../../../entity/session/session.js';
+import { Settings } from '../../../entity/settings/settings.js';
+import { Track } from '../../../entity/track/track.js';
+import { User } from '../../../entity/user/user.js';
+import { Tag } from '../../../entity/tag/tag.js';
+import { injectable } from 'inversify';
+import { Metadata } from '../../../entity/metadata/metadata.js';
+import { PlaylistEntry } from '../../../entity/playlistentry/playlist-entry.js';
+import { PlayQueueEntry } from '../../../entity/playqueueentry/playqueue-entry.js';
+import path from 'node:path';
+import { ORM } from '../../orm/index.js';
+import { ORMEntities } from '../orm/entities.js';
+import { ORMRepositories } from '../orm/repositories.js';
+import { registerORMEnums } from '../orm/enum-registration.js';
+import { Genre } from '../../../entity/genre/genre.js';
+import { notFoundError } from '../../deco/express/express-error.js';
+registerORMEnums();
+export class Orm {
+    constructor(em) {
+        this.em = em;
+        this.State = em.getRepository(State);
+        this.Album = em.getRepository(Album);
+        this.Artist = em.getRepository(Artist);
+        this.Artwork = em.getRepository(Artwork);
+        this.Bookmark = em.getRepository(Bookmark);
+        this.Episode = em.getRepository(Episode);
+        this.Folder = em.getRepository(Folder);
+        this.Root = em.getRepository(Root);
+        this.MetaData = em.getRepository(Metadata);
+        this.PlayQueue = em.getRepository(PlayQueue);
+        this.PlayQueueEntry = em.getRepository(PlayQueueEntry);
+        this.Playlist = em.getRepository(Playlist);
+        this.PlaylistEntry = em.getRepository(PlaylistEntry);
+        this.Podcast = em.getRepository(Podcast);
+        this.Radio = em.getRepository(Radio);
+        this.Series = em.getRepository(Series);
+        this.Session = em.getRepository(Session);
+        this.Settings = em.getRepository(Settings);
+        this.Tag = em.getRepository(Tag);
+        this.Track = em.getRepository(Track);
+        this.User = em.getRepository(User);
+        this.Genre = em.getRepository(Genre);
+    }
+    static async findInReposTypes(id, repos) {
+        for (const repo of repos) {
+            const obj = await repo.findOneByID(id);
+            if (obj) {
+                return { obj, objType: repo.objType };
+            }
+        }
+        return;
+    }
+    async findInStreamTypes(id) {
+        return Orm.findInReposTypes(id, [this.Track, this.Episode]);
+    }
+    async findListInStreamTypes(ids) {
+        const list = [];
+        for (const id of ids) {
+            const media = await this.findInStreamTypes(id);
+            if (!media) {
+                return Promise.reject(notFoundError());
+            }
+            list.push(media);
+        }
+        return list;
+    }
+    byType(destinationType) {
+        return [
+            this.Album,
+            this.Artist,
+            this.Artwork,
+            this.Bookmark,
+            this.Episode,
+            this.Folder,
+            this.Genre,
+            this.Root,
+            this.MetaData,
+            this.PlayQueue,
+            this.PlayQueueEntry,
+            this.Playlist,
+            this.PlaylistEntry,
+            this.Podcast,
+            this.Radio,
+            this.State,
+            this.Series,
+            this.Session,
+            this.Tag,
+            this.Track,
+            this.User
+        ].find(repo => repo.objType === destinationType);
+    }
+    async findInRepos(id, repos) {
+        return Orm.findInReposTypes(id, repos);
+    }
+    async findInImageTypes(id) {
+        return Orm.findInReposTypes(id, [
+            this.Album,
+            this.Artist,
+            this.Artwork,
+            this.Episode,
+            this.Folder,
+            this.Genre,
+            this.Root,
+            this.Playlist,
+            this.Podcast,
+            this.Radio,
+            this.Series,
+            this.Track,
+            this.User
+        ]);
+    }
+    async findInDownloadTypes(id) {
+        return Orm.findInReposTypes(id, [
+            this.Album,
+            this.Artist,
+            this.Artwork,
+            this.Episode,
+            this.Folder,
+            this.Playlist,
+            this.Podcast,
+            this.Series,
+            this.Track
+        ]);
+    }
+    async findInStateTypes(id) {
+        return Orm.findInReposTypes(id, [
+            this.Album,
+            this.Artist,
+            this.Artwork,
+            this.Episode,
+            this.Folder,
+            this.Root,
+            this.Genre,
+            this.Playlist,
+            this.Podcast,
+            this.Series,
+            this.Radio,
+            this.Track
+        ]);
+    }
+    async findInWaveformTypes(id) {
+        return Orm.findInReposTypes(id, [this.Track, this.Episode]);
+    }
+}
+let OrmService = class OrmService {
+    sqliteConfig(config) {
+        return {
+            dialect: 'sqlite',
+            storage: path.resolve(config.env.paths.data, 'jam.sqlite')
+        };
+    }
+    dialoectConfig(config) {
+        return {
+            dialect: config.env.db.dialect,
+            username: config.env.db.user,
+            password: config.env.db.password,
+            database: config.env.db.name,
+            host: config.env.db.socket ?? config.env.db.host,
+            port: config.env.db.port ? Number(config.env.db.port) : undefined
+        };
+    }
+    async init(config) {
+        const db = config.env.db.dialect === 'sqlite' ?
+            this.sqliteConfig(config) :
+            this.dialoectConfig(config);
+        this.orm = await ORM.init({
+            entities: ORMEntities,
+            repositories: ORMRepositories,
+            options: {
+                ...db,
+                logging: false,
+                logQueryParameters: true,
+                retry: { max: 0 }
+            }
+        });
+    }
+    async start() {
+        await this.orm.ensureSchema();
+    }
+    async stop() {
+        await this.orm.close();
+    }
+    fork(noCache) {
+        return new Orm(this.orm.manager(!noCache));
+    }
+    clearCache() {
+        this.orm.clearCache();
+    }
+    async drop() {
+        await this.orm.dropSchema();
+    }
+};
+OrmService = __decorate([
+    injectable()
+], OrmService);
+export { OrmService };
+//# sourceMappingURL=orm.service.js.map

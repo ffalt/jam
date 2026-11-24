@@ -1,0 +1,1 @@
+{"version":3,"file":"clock.js","sourceRoot":"","sources":["../../../src/utils/limiter/clock.ts"],"names":[],"mappings":"AACA,MAAM,UAAU,eAAe;IAC9B,OAAO,IAAI,CAAC,GAAG,EAAE,CAAC;AACnB,CAAC;AAGD,MAAM,UAAU,IAAI,CAAC,EAAU;IAC9B,OAAO,IAAI,OAAO,CAAC,OAAO,CAAC,EAAE,CAAC,UAAU,CAAC,OAAO,EAAE,EAAE,CAAC,CAAC,CAAC;AACxD,CAAC"}

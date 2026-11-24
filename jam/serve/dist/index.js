@@ -1,0 +1,38 @@
+import 'reflect-metadata';
+import { JAMSERVE_VERSION } from './version.js';
+import dotenv from 'dotenv';
+import { configureLogger, logger } from './utils/logger.js';
+import { Server } from './modules/server/server.js';
+import { container } from './container.js';
+dotenv.config({ quiet: true });
+configureLogger(process.env.JAM_LOG_LEVEL ?? 'info', process.env.JAM_LOG_FILE);
+const log = logger('Server');
+const server = container.get(Server);
+async function run() {
+    log.info(`JamServe ${JAMSERVE_VERSION} starting`);
+    await server.engine.init();
+    await server.engine.start();
+    await server.init();
+    await server.start();
+}
+async function stop() {
+    try {
+        await server.stop();
+        process.exit();
+    }
+    catch (error) {
+        log.errorMsg('Error on server stop', error);
+        process.exit(1);
+    }
+}
+process.on('SIGTERM', () => {
+    stop()
+        .catch((error) => {
+        log.error(error);
+    });
+});
+run()
+    .catch((error) => {
+    log.error(error);
+});
+//# sourceMappingURL=index.js.map

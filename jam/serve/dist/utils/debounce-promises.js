@@ -1,0 +1,45 @@
+export class DebouncePromises {
+    constructor() {
+        this.pendingPromises = new Map();
+    }
+    getPendingArray(id) {
+        return this.pendingPromises.get(id) ?? [];
+    }
+    async append(id) {
+        return new Promise((resolve, reject) => {
+            const run = (error, result) => {
+                if (error) {
+                    reject(error);
+                }
+                else if (result) {
+                    resolve(result);
+                }
+                else {
+                    reject(new Error('Invalid Promise Result'));
+                }
+            };
+            this.pendingPromises.set(id, [...this.getPendingArray(id), run]);
+        });
+    }
+    setPending(id) {
+        this.pendingPromises.set(id, []);
+    }
+    isPending(id) {
+        return this.pendingPromises.has(id);
+    }
+    resolve(id, result) {
+        const pending = this.getPendingArray(id);
+        this.pendingPromises.delete(id);
+        for (const callback of pending) {
+            callback(undefined, result);
+        }
+    }
+    reject(id, error) {
+        const pending = this.getPendingArray(id);
+        this.pendingPromises.delete(id);
+        for (const callback of pending) {
+            callback(error);
+        }
+    }
+}
+//# sourceMappingURL=debounce-promises.js.map

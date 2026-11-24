@@ -1,0 +1,87 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import path from 'node:path';
+import fse from 'fs-extra';
+import { AudioModule } from '../../modules/audio/audio.module.js';
+import { DBObjectType, WaveformFormatType } from '../../types/enums.js';
+import { injectable, inject } from 'inversify';
+import { logger } from '../../utils/logger.js';
+import { genericError, invalidParameterError } from '../../modules/deco/express/express-error.js';
+const log = logger('Waveform');
+export const WaveformDefaultFormat = WaveformFormatType.svg;
+let WaveformService = class WaveformService {
+    async getWaveform(obj, objType, format, width) {
+        format ?? (format = WaveformDefaultFormat);
+        switch (objType) {
+            case DBObjectType.track: {
+                return this.getTrackWaveform(obj, format, width);
+            }
+            case DBObjectType.episode: {
+                return this.getEpisodeWaveform(obj, format, width);
+            }
+            default:
+        }
+        return Promise.reject(invalidParameterError('Invalid Object Type for Waveform generation'));
+    }
+    async getWaveformSVG(obj, objType, width) {
+        const result = await this.getWaveform(obj, objType, WaveformFormatType.svg, width);
+        if (result.buffer) {
+            return result.buffer.buffer.toString();
+        }
+        if (result.file) {
+            try {
+                const file = await fse.readFile(result.file.filename);
+                return file.toString();
+            }
+            catch (error) {
+                log.error(error);
+                return Promise.reject(genericError('Invalid waveform result'));
+            }
+        }
+        return Promise.reject(genericError('Invalid svg waveform result'));
+    }
+    async getWaveformJSON(obj, objType) {
+        const result = await this.getWaveform(obj, objType, WaveformFormatType.json);
+        if (result.json) {
+            return result.json;
+        }
+        if (result.buffer) {
+            return JSON.parse(result.buffer.buffer.toString());
+        }
+        if (result.file) {
+            try {
+                return await fse.readJSON(result.file.filename);
+            }
+            catch (error) {
+                log.error(error);
+                return Promise.reject(genericError('Invalid json waveform result'));
+            }
+        }
+        return Promise.reject(genericError('Invalid waveform result'));
+    }
+    async getTrackWaveform(track, format, width) {
+        return this.audioModule.waveform.get(track.id, path.join(track.path, track.fileName), format, width);
+    }
+    async getEpisodeWaveform(episode, format, width) {
+        if (episode.id && episode.path) {
+            return this.audioModule.waveform.get(episode.id, episode.path, format, width);
+        }
+        return Promise.reject(genericError('Podcast episode not ready'));
+    }
+};
+__decorate([
+    inject(AudioModule),
+    __metadata("design:type", AudioModule)
+], WaveformService.prototype, "audioModule", void 0);
+WaveformService = __decorate([
+    injectable()
+], WaveformService);
+export { WaveformService };
+//# sourceMappingURL=waveform.service.js.map

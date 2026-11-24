@@ -1,0 +1,32 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { injectable } from 'inversify';
+import { BaseTransformService } from '../base/base.transform.js';
+import { DBObjectType } from '../../types/enums.js';
+let ArtworkTransformService = class ArtworkTransformService extends BaseTransformService {
+    async artworkBases(orm, list, artworkParameters, user) {
+        return await Promise.all(list.map(t => this.artworkBase(orm, t, artworkParameters, user)));
+    }
+    async artworkBase(orm, o, artworkParameters, user) {
+        return {
+            id: o.id,
+            name: o.name,
+            types: o.types,
+            height: o.height,
+            width: o.width,
+            format: o.format,
+            created: o.createdAt.valueOf(),
+            state: artworkParameters.artworkIncState ? await this.state(orm, o.id, DBObjectType.artwork, user.id) : undefined,
+            size: o.fileSize
+        };
+    }
+};
+ArtworkTransformService = __decorate([
+    injectable()
+], ArtworkTransformService);
+export { ArtworkTransformService };
+//# sourceMappingURL=artwork.transform.js.map

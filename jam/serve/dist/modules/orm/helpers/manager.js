@@ -1,0 +1,358 @@
+import { EntityRepository } from './repository.js';
+import { collectChunked } from '../../../utils/chunks.js';
+import { cleanManagedEntityRelations, createManagedEntity, mapManagedToSource, saveManagedEntityRelations } from './entity.js';
+import { v4 } from 'uuid';
+export class EntityCache {
+    constructor() {
+        this.cache = new Map();
+    }
+    get(entityName, id) {
+        return this.cache.get(`${entityName}${id}`);
+    }
+    set(entityName, entity) {
+        this.cache.set(`${entityName}${entity.id}`, entity);
+    }
+    remove(entityName, entity) {
+        this.cache.delete(`${entityName}${entity.id}`);
+    }
+    clear() {
+        this.cache = new Map();
+    }
+    removePrefixed(entityName) {
+        const keys = this.cache.keys();
+        for (const key of keys) {
+            if (key.startsWith(entityName)) {
+                this.cache.delete(key);
+            }
+        }
+    }
+}
+export class EntityManager {
+    constructor(sequelize, metadata, config, parent, useCache) {
+        this.sequelize = sequelize;
+        this.metadata = metadata;
+        this.config = config;
+        this.parent = parent;
+        this.useCache = useCache;
+        this.repositoryMap = {};
+        this.changeSet = [];
+        this.pendingPersist = new Set();
+    }
+    get dialect() {
+        return this.sequelize.getDialect();
+    }
+    getRepository(entityName) {
+        const name = typeof entityName === 'string' ? entityName : entityName.name;
+        let repository = this.repositoryMap[name];
+        if (!repository) {
+            const RepositoryClass = this.config.repositories[name];
+            repository = RepositoryClass ?
+                new RepositoryClass(this, name) :
+                new EntityRepository(this, name);
+            this.repositoryMap[name] = repository;
+        }
+        return repository;
+    }
+    persistAndFlush(entityName, entity) {
+        this.persistLater(entityName, entity);
+        return this.flush();
+    }
+    persistLater(entityName, entity) {
+        const entities = Array.isArray(entity) ? entity : [entity];
+        for (const entry of entities) {
+            if (this.pendingPersist.has(entry)) {
+                continue;
+            }
+            this.pendingPersist.add(entry);
+            this.changeSet.push({ entityName: entityName, persist: entry });
+        }
+    }
+    entityInsertOrder() {
+        if (this.insertOrder) {
+            return this.insertOrder;
+        }
+        const order = [];
+        const visiting = new Set();
+        const visit = (name) => {
+            if (order.includes(name) || visiting.has(name)) {
+                return;
+            }
+            visiting.add(name);
+            const fields = this.metadata.entityInfoByName(name)?.fields ?? [];
+            for (const field of fields) {
+                const relation = field.typeOptions.relation;
+                if (field.isRelation && field.linkedEntity && (relation === 'many2one' || relation === 'one2one')) {
+                    visit(field.linkedEntity.name);
+                }
+            }
+            visiting.delete(name);
+            order.push(name);
+        };
+        for (const entity of this.metadata.entities) {
+            visit(entity.name);
+        }
+        this.insertOrder = order;
+        return order;
+    }
+    async persistGroup(entityName, entities, transaction) {
+        const created = [];
+        const updated = [];
+        for (const entity of entities) {
+            mapManagedToSource(entity);
+            (entity._source.isNewRecord ? created : updated).push(entity);
+        }
+        for (let start = 0; start < created.length; start += EntityManager.INSERT_BATCH_SIZE) {
+            const batch = created.slice(start, start + EntityManager.INSERT_BATCH_SIZE);
+            const values = batch.map(entity => entity._source.get({ plain: true }));
+            await this.model(entityName).bulkCreate(values, { transaction, validate: true });
+            for (const entity of batch) {
+                entity._source.isNewRecord = false;
+            }
+        }
+        for (const entity of updated) {
+            await entity._source.save({ transaction });
+        }
+    }
+    async persistEntities(list, transaction) {
+        if (list.length === 0) {
+            return;
+        }
+        const groups = new Map();
+        for (const item of list) {
+            const group = groups.get(item.entityName);
+            if (group) {
+                group.push(item.entity);
+            }
+            else {
+                groups.set(item.entityName, [item.entity]);
+            }
+        }
+        const order = this.entityInsertOrder();
+        const names = groups.keys().toArray().sort((a, b) => order.indexOf(a) - order.indexOf(b));
+        for (const name of names) {
+            await this.persistGroup(name, groups.get(name) ?? [], transaction);
+        }
+    }
+    async applyChangeSet(transaction) {
+        let persists = [];
+        for (const change of this.changeSet) {
+            if (change.persist) {
+                persists.push({ entityName: change.entityName, entity: change.persist });
+                continue;
+            }
+            await this.persistEntities(persists, transaction);
+            persists = [];
+            if (change.remove?.entity) {
+                await change.remove.entity._source.destroy({ transaction });
+                this.parent.cache.remove(change.entityName, change.remove.entity);
+            }
+            else if (change.remove?.query) {
+                const model = this.model(change.entityName);
+                change.remove.resultCount = await model.destroy({ where: change.remove.query.where, transaction });
+                this.parent.cache.removePrefixed(change.entityName);
+            }
+        }
+        await this.persistEntities(persists, transaction);
+    }
+    async flush() {
+        if (this.changeSet.length === 0) {
+            return;
+        }
+        const t = await this.sequelize.transaction();
+        try {
+            await this.applyChangeSet(t);
+            for (const change of this.changeSet) {
+                if (change.persist) {
+                    await saveManagedEntityRelations(change.persist, t);
+                }
+            }
+            for (const change of this.changeSet) {
+                if (!change.persist) {
+                    continue;
+                }
+                cleanManagedEntityRelations(change.persist);
+                this.parent.cache.remove(change.entityName, change.persist);
+            }
+            this.changeSet = [];
+            this.pendingPersist.clear();
+            await t.commit();
+        }
+        catch (error) {
+            await t.rollback();
+            throw error;
+        }
+    }
+    async fromCacheOrLoad(entityName, ids) {
+        const toLoadIDs = [];
+        const fromCache = [];
+        for (const id of ids) {
+            const c = this.parent.cache.get(entityName, id);
+            if (c) {
+                fromCache.push(c);
+            }
+            else {
+                toLoadIDs.push(id);
+            }
+        }
+        if (toLoadIDs.length === 0) {
+            return fromCache;
+        }
+        const model = this.model(entityName);
+        const findOptions = { where: { id: toLoadIDs } };
+        const loadedSources = await model.findAll(findOptions);
+        const loaded = loadedSources.map(source => this.mapEntity(entityName, source));
+        for (const item of loaded) {
+            this.parent.cache.set(entityName, item);
+        }
+        const list = [...loaded, ...fromCache];
+        return list.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    }
+    async findOne(entityName, options) {
+        if (this.useCache) {
+            const id = await this.findOneID(entityName, options);
+            if (!id) {
+                return;
+            }
+            const cached = this.parent.cache.get(entityName, id);
+            if (cached) {
+                return cached;
+            }
+        }
+        const model = this.model(entityName);
+        const source = await model.findOne(options);
+        if (!source) {
+            return;
+        }
+        const result = this.mapEntity(entityName, source);
+        if (this.useCache) {
+            this.parent.cache.set(entityName, result);
+        }
+        return result;
+    }
+    async findOneByID(entityName, id) {
+        if (id.trim().length === 0) {
+            return Promise.reject(new Error('Invalid ID'));
+        }
+        if (this.useCache) {
+            const cached = this.parent.cache.get(entityName, id);
+            if (cached) {
+                return cached;
+            }
+        }
+        const model = this.model(entityName);
+        const source = await model.findOne({ where: { id } });
+        if (!source) {
+            return;
+        }
+        const result = this.mapEntity(entityName, source);
+        if (this.useCache) {
+            this.parent.cache.set(entityName, result);
+        }
+        return result;
+    }
+    async find(entityName, options) {
+        if (this.useCache) {
+            const ids = await this.findIDs(entityName, options);
+            return await this.fromCacheOrLoad(entityName, ids);
+        }
+        const model = this.model(entityName);
+        const rows = await model.findAll(options);
+        return rows.map(source => this.mapEntity(entityName, source));
+    }
+    async findAndCount(entityName, options) {
+        if (this.useCache) {
+            const { count, ids } = await this.findIDsAndCount(entityName, options);
+            const entities = await this.fromCacheOrLoad(entityName, ids);
+            return { count, entities };
+        }
+        const model = this.model(entityName);
+        const { count, rows } = await model.findAndCountAll(options);
+        return { count, entities: rows.map(source => this.mapEntity(entityName, source)) };
+    }
+    async all(entityName) {
+        return this.find(entityName, {});
+    }
+    async findOneOrFail(entityName, options) {
+        const result = await this.findOne(entityName, options);
+        if (!result) {
+            throw new Error(`${entityName} not found`);
+        }
+        return result;
+    }
+    async findOneOrFailByID(entityName, id) {
+        const result = await this.findOneByID(entityName, id);
+        if (!result) {
+            throw new Error(`${entityName} not found`);
+        }
+        return result;
+    }
+    async findByIDs(entityName, ids) {
+        return await collectChunked(ids, chunk => this.find(entityName, { where: { id: chunk } }));
+    }
+    async findOneID(entityName, options) {
+        const model = this.model(entityName);
+        const findOptions = { ...options, raw: true, attributes: ['id'] };
+        const result = await model.findOne(findOptions);
+        return result?.id;
+    }
+    async findIDs(entityName, options) {
+        const model = this.model(entityName);
+        const findOptions = { ...options, raw: true, attributes: ['id'] };
+        const result = await model.findAll(findOptions);
+        return result.map(o => o.id);
+    }
+    async findIDsAndCount(entityName, options) {
+        const model = this.model(entityName);
+        const findOptions = { ...options, raw: true, attributes: ['id'] };
+        const { count, rows } = await model.findAndCountAll(findOptions);
+        return { count, ids: rows.map((o) => o.id) };
+    }
+    async count(entityName, options = {}) {
+        return await this.model(entityName).count(options);
+    }
+    model(entityName) {
+        return this.sequelize.model(entityName);
+    }
+    mapEntity(entityName, source) {
+        const meta = this.metadata.entityInfoByName(entityName);
+        if (!meta) {
+            throw new Error('Invalid ORM setup');
+        }
+        return createManagedEntity(meta, source, this);
+    }
+    create(entityName, data) {
+        const idData = { id: v4(), createdAt: new Date(), updatedAt: new Date(), ...data };
+        const source = this.model(entityName).build(idData);
+        const entity = this.mapEntity(entityName, source);
+        for (const [key, value] of Object.entries(idData)) {
+            entity[key] = value;
+        }
+        return entity;
+    }
+    async removeAndFlush(entityName, entity) {
+        this.removeLater(entityName, entity);
+        await this.flush();
+    }
+    removeLater(entityName, entity) {
+        const entities = Array.isArray(entity) ? entity : [entity];
+        this.changeSet.push(...(entities.map(entry => ({ entityName: entityName, remove: { entity: entry } }))));
+    }
+    async removeByQueryAndFlush(entityName, options) {
+        const change = { entityName: entityName, remove: { query: options, resultCount: 0 } };
+        this.changeSet.push(change);
+        await this.flush();
+        return change.remove.resultCount;
+    }
+    hasChanges() {
+        return this.changeSet.length > 0;
+    }
+    changesCount() {
+        return this.changeSet.length;
+    }
+    getOrderFindOptions(entityName, order) {
+        const repo = this.getRepository(entityName);
+        return repo.buildOrderByFindOptions(order);
+    }
+}
+EntityManager.INSERT_BATCH_SIZE = 500;
+//# sourceMappingURL=manager.js.map

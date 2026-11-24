@@ -1,0 +1,95 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var PlaylistService_1;
+import { injectable } from 'inversify';
+import { DBObjectType } from '../../types/enums.js';
+import { notFoundError } from '../../modules/deco/express/express-error.js';
+let PlaylistService = PlaylistService_1 = class PlaylistService {
+    static async getDuration(media) {
+        switch (media.objType) {
+            case DBObjectType.episode: {
+                const episodeTag = await media.obj.tag.get();
+                return (episodeTag?.mediaDuration ?? 0);
+            }
+            case DBObjectType.track: {
+                const trackTag = await media.obj.tag.get();
+                return (trackTag?.mediaDuration ?? 0);
+            }
+        }
+        return 0;
+    }
+    async create(orm, parameters, user) {
+        const playlist = orm.Playlist.create({
+            name: parameters.name,
+            comment: parameters.comment,
+            isPublic: parameters.isPublic,
+            changed: Date.now(),
+            duration: 0
+        });
+        await playlist.user.set(user);
+        await orm.Playlist.persistAndFlush(playlist);
+        const ids = parameters.mediaIDs ?? [];
+        if (ids.length === 0) {
+            return playlist;
+        }
+        let position = 1;
+        let duration = 0;
+        for (const id of ids) {
+            const media = await orm.findInStreamTypes(id);
+            if (!media) {
+                return Promise.reject(notFoundError());
+            }
+            duration += await PlaylistService_1.getDuration(media);
+            const entry = orm.PlaylistEntry.create({ position });
+            await entry.playlist.set(playlist);
+            await entry.track.set(media.objType === DBObjectType.track ? media.obj : undefined);
+            await entry.episode.set(media.objType === DBObjectType.episode ? media.obj : undefined);
+            orm.PlaylistEntry.persistLater(entry);
+            position++;
+        }
+        await orm.PlaylistEntry.flush();
+        playlist.duration = duration;
+        await orm.Playlist.persistAndFlush(playlist);
+        return playlist;
+    }
+    async updateEntries(orm, ids, _parameters, playlist) {
+        const mediaList = await orm.findListInStreamTypes(ids);
+        const entries = await playlist.entries.getItems();
+        const oldEntries = entries.sort((a, b) => b.position - a.position);
+        let duration = 0;
+        let position = 1;
+        for (const media of mediaList) {
+            let entry = oldEntries.pop();
+            entry ?? (entry = orm.PlaylistEntry.create({ position }));
+            entry.position = position;
+            await entry.playlist.set(playlist);
+            await entry.track.set(media.objType === DBObjectType.track ? media.obj : undefined);
+            await entry.episode.set(media.objType === DBObjectType.episode ? media.obj : undefined);
+            duration += await PlaylistService_1.getDuration(media);
+            position++;
+            orm.PlaylistEntry.persistLater(entry);
+        }
+        orm.PlaylistEntry.removeListLater(oldEntries);
+        return duration;
+    }
+    async update(orm, parameters, playlist) {
+        playlist.name = parameters.name ?? playlist.name;
+        playlist.isPublic = parameters.isPublic ?? playlist.isPublic;
+        playlist.comment = parameters.comment ?? playlist.comment;
+        playlist.duration = await this.updateEntries(orm, parameters.mediaIDs ?? [], parameters, playlist);
+        orm.Playlist.persistLater(playlist);
+        await orm.em.flush();
+    }
+    async remove(orm, playlist) {
+        await orm.Playlist.removeAndFlush(playlist);
+    }
+};
+PlaylistService = PlaylistService_1 = __decorate([
+    injectable()
+], PlaylistService);
+export { PlaylistService };
+//# sourceMappingURL=playlist.service.js.map

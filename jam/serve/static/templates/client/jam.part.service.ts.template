@@ -1,0 +1,38 @@
+// @generated
+// This file was automatically generated and should not be edited.
+
+{{#withHttpEvent}}
+import type { HttpEvent } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import type { Observable } from 'rxjs';
+{{/withHttpEvent}}
+{{^withHttpEvent}}
+import { inject, Injectable } from '@angular/core';
+{{/withHttpEvent}}
+
+import { JamBaseService } from '../jam.base.service';
+{{#withJam}}
+import type { Jam } from '../model/jam-rest-data';
+{{/withJam}}
+{{#withJamParam}}
+import type { JamParameters } from '../model/jam-rest-params';
+{{/withJamParam}}
+
+@Injectable()
+export class Jam{{part}}Service {
+	private readonly base = inject(JamBaseService);
+	{{#list}}
+
+	{{#description}}
+	/**
+	{{{description}}}
+	*/
+	{{/description}}
+	{{^sync}}async {{/sync}}{{{name}}}({{{paramName}}}{{#paramsType}}: {{{paramsType}}}{{/paramsType}}): {{^sync}}Promise<{{/sync}}{{{resultType}}}{{^sync}}>{{/sync}} {
+    	{{#validate}}
+		{{{validate}}}
+    	{{/validate}}
+		return this.base.{{{baseFunc}}}{{#baseFuncResultType}}<{{{baseFuncResultType}}}>{{/baseFuncResultType}}({{#apiPathTemplate}}{{{tick}}}{{/apiPathTemplate}}{{^apiPathTemplate}}{{{tick}}}{{/apiPathTemplate}}{{{apiPath}}}{{#apiPathTemplate}}{{{tick}}}{{/apiPathTemplate}}{{^apiPathTemplate}}{{{tick}}}{{/apiPathTemplate}}{{#baseFuncParameters}}, {{{baseFuncParameters}}}{{/baseFuncParameters}});
+	}
+	{{/list}}
+}

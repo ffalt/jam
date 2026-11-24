@@ -1,0 +1,67 @@
+export class EntityRepository {
+    constructor(em, entityName) {
+        this.em = em;
+        this.entityName = entityName;
+    }
+    buildOrderByFindOptions(_order) {
+        return;
+    }
+    async persistAndFlush(entity) {
+        await this.em.persistAndFlush(this.entityName, entity);
+    }
+    persistLater(entity) {
+        this.em.persistLater(this.entityName, entity);
+    }
+    async findOne(options) {
+        return this.em.findOne(this.entityName, options);
+    }
+    async findOneOrFail(options) {
+        return this.em.findOneOrFail(this.entityName, options);
+    }
+    async findOneByID(id) {
+        return this.em.findOneByID(this.entityName, id);
+    }
+    async findOneOrFailByID(id) {
+        return this.em.findOneOrFailByID(this.entityName, id);
+    }
+    async findByIDs(ids) {
+        return this.em.findByIDs(this.entityName, ids);
+    }
+    async findOneID(options) {
+        return this.em.findOneID(this.entityName, options);
+    }
+    async findIDs(options) {
+        return this.em.findIDs(this.entityName, options);
+    }
+    async find(options) {
+        return this.em.find(this.entityName, options);
+    }
+    async all() {
+        return this.em.all(this.entityName);
+    }
+    async findAndCount(options) {
+        return this.em.findAndCount(this.entityName, options);
+    }
+    async removeByQueryAndFlush(options) {
+        return this.em.removeByQueryAndFlush(this.entityName, options);
+    }
+    async removeAndFlush(entity) {
+        await this.em.removeAndFlush(this.entityName, entity);
+    }
+    removeLater(entity) {
+        this.em.removeLater(this.entityName, entity);
+    }
+    removeListLater(entities) {
+        this.em.removeLater(this.entityName, entities);
+    }
+    async flush() {
+        return this.em.flush();
+    }
+    create(data) {
+        return this.em.create(this.entityName, data);
+    }
+    async count(options = {}) {
+        return this.em.count(this.entityName, options);
+    }
+}
+//# sourceMappingURL=repository.js.map
