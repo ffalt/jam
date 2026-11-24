@@ -35,6 +35,7 @@ async function start(): Promise<void> {
 			start: 'node dist/index.js'
 		},
 		engines: pack.engines,
+		overrides: pack.overrides,
 		dependencies: pack.dependencies
 	};
 	await fse.writeJson('deploy/package.json', result, { spaces: 2 });
@@ -45,8 +46,7 @@ async function start(): Promise<void> {
 	console.log('Copy static files');
 	await fse.copy('static', 'deploy/static');
 	console.log('Copy doc files');
-	await fse.copy('LICENSE', 'deploy/LICENSE');
-	await fse.copy('README.md', 'deploy/README.md');
+	await fse.copy('../LICENSE', 'deploy/LICENSE');
 	console.log('Cleanup "deploy/node_modules"');
 	await fse.remove('deploy/node_modules');
 	console.log('done.');
