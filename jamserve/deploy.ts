@@ -45,8 +45,6 @@ async function start(): Promise<void> {
 	await fse.copy('dist', 'deploy/dist');
 	console.log('Copy static files');
 	await fse.copy('static', 'deploy/static');
-	console.log('Copy doc files');
-	await fse.copy('../LICENSE', 'deploy/LICENSE');
 	console.log('Cleanup "deploy/node_modules"');
 	await fse.remove('deploy/node_modules');
 	console.log('done.');
