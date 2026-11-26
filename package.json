@@ -1,6 +1,6 @@
 {
   "name": "jam",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "ffalt",
   "license": "MIT",
   "description": "jam monorepo: jamserve audio server, jamberry web client and the ffalt/jam docker image",
