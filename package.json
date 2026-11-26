@@ -23,49 +23,8 @@
     "docker:build": "docker build -f docker/jam/Dockerfile -t ffalt/jam .",
     "docker:build:test": "docker build -t ffalt/jam-test docker/test",
     "check": "qlty check --all --no-formatters",
-    "release": "commit-and-tag-version -a",
-    "release:dry": "commit-and-tag-version -a --dry-run",
+    "release": "npx commit-and-tag-version -a",
+    "release:dry": "npx commit-and-tag-version -a --dry-run",
     "releaselog": "node .github/scripts/extract-release.mjs"
-  },
-  "commit-and-tag-version": {
-    "header": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n",
-    "packageFiles": [
-      {
-        "filename": "package.json",
-        "type": "json"
-      }
-    ],
-    "bumpFiles": [
-      {
-        "filename": "package.json",
-        "type": "json"
-      },
-      {
-        "filename": "package-lock.json",
-        "type": "json"
-      },
-      {
-        "filename": "jamserve/package.json",
-        "type": "json"
-      },
-      {
-        "filename": "jamserve/package-lock.json",
-        "type": "json"
-      },
-      {
-        "filename": "jamberry/package.json",
-        "type": "json"
-      },
-      {
-        "filename": "jamberry/package-lock.json",
-        "type": "json"
-      }
-    ],
-    "scripts": {
-      "postbump": "cd jamberry && node ./build-pre.mjs && git add ./src/environments/version.ts"
-    }
-  },
-  "devDependencies": {
-    "commit-and-tag-version": "13.5.0"
   }
 }

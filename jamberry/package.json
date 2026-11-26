@@ -24,12 +24,10 @@
     "clean": "rimraf dist",
     "i18n:export": "ng extract-i18n --output-path src/locale",
     "update:angular": "ng update @angular/cli @angular/core",
-    "build:prebuild": "npm run clean && npm run build:version",
-    "build:version": "node ./build-pre.mjs",
     "build:stats": "ng build --named-chunks --configuration production --stats-json --output-hashing=none",
     "build:prod": "ng build --verbose --configuration production",
-    "build:develop": "npm run build:prebuild && ng build",
-    "build:deploy": "npm run build:prebuild && npm run build:prod",
+    "build:develop": "npm run clean && ng build",
+    "build:deploy": "npm run clean && npm run build:prod",
     "analyze": "npm run build:stats && npx -y @angular-experts/hawkeye dist/stats.json"
   },
   "engines": {
