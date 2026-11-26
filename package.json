@@ -66,6 +66,6 @@
     }
   },
   "devDependencies": {
-    "commit-and-tag-version": "13.3.0"
+    "commit-and-tag-version": "13.5.0"
   }
 }
