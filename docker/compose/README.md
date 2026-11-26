@@ -20,5 +20,10 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 Media folders are mounted from `storage/media` and are addressed as `/usr/share/media/...`
 inside `storage/data/config/firststart.config.json`.
 
+The stack runs PostgreSQL 19 and keeps its data in `storage/db/postgres19`. Updating to a
+new PostgreSQL major version is not a plain `docker compose pull`: the data has to be
+exported and imported again, see
+[docs/postgres-upgrade.md](https://github.com/ffalt/jam/blob/main/docs/postgres-upgrade.md).
+
 The full deployment guide, including all environment variables and the production checklist,
 is at [docs/docker.md](https://github.com/ffalt/jam/blob/main/docs/docker.md).

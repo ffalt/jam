@@ -1,11 +1,11 @@
 services:
   postgres:
-    image: postgres:17.12
+    image: postgres:19
     container_name: jam-postgres
     volumes:
       - type: bind
-        source: ./storage/db/postgres
-        target: /var/lib/postgresql/data
+        source: ./storage/db/postgres19
+        target: /var/lib/postgresql
 #    ports:
 #      - "127.0.0.1:5432:5432"
     environment:

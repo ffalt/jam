@@ -2,3 +2,4 @@
 .env
 *.sh
 local
+!/scripts/*.sh

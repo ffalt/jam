@@ -150,7 +150,7 @@ jobs:
           cp -R docker/compose/. package/jam/
           rm -f package/jam/.gitignore
           cp LICENSE package/jam/LICENSE
-          mkdir -p package/jam/storage/db/postgres
+          mkdir -p package/jam/storage/db/postgres19
           (cd package && zip -r ./jam-docker.zip jam)
 
       - name: Create Release Checksums

@@ -25,7 +25,7 @@ See also [JamPacked](https://github.com/ffalt/jampacked) for the mobile app.
 
 For Docker deployment, see the [Docker guide](docs/docker.md). The `ffalt/jam` image includes both JamServe and JamBerry and supports AMD64 and ARM64; the `jam-docker.zip` release asset contains the Docker Compose stack.
 
-See the guides to [prerequisites](docs/prerequisites.md), [installation](docs/installation.md), [Docker deployment](docs/docker.md) and [configuration](docs/configuration.md).
+See the guides to [prerequisites](docs/prerequisites.md), [installation](docs/installation.md), [Docker deployment](docs/docker.md), [configuration](docs/configuration.md) and [upgrading PostgreSQL](docs/postgres-upgrade.md).
 
 ## Development
 

@@ -29,7 +29,7 @@ docker tag ffalt/jam-test ffalt/jam-test:test
 `compose/` holds the Docker Compose stack (`ffalt/jam:latest` plus PostgreSQL), the
 configuration templates and the empty storage folders users deploy into. The release workflow
 packs it as the `jam-docker.zip` release asset, with the root `LICENSE` and a pre-created
-`storage/db/postgres` directory. The deployment guide is [docs/docker.md](../docs/docker.md).
+`storage/db/postgres19` directory. The deployment guide is [docs/docker.md](../docs/docker.md).
 
 To test the packaging locally:
 
@@ -38,6 +38,6 @@ mkdir -p local/package/jam
 cp -R docker/compose/. local/package/jam/
 rm -f local/package/jam/.gitignore
 cp LICENSE local/package/jam/LICENSE
-mkdir -p local/package/jam/storage/db/postgres
+mkdir -p local/package/jam/storage/db/postgres19
 (cd local/package && zip -r ./jam-docker.zip jam)
 ```

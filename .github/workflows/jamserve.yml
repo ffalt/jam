@@ -65,7 +65,7 @@ jobs:
           add-prefix: jamserve/
     services:
       postgres:
-        image: postgres
+        image: postgres:19
         env:
           POSTGRES_DB: jamtest
           POSTGRES_USER: test
